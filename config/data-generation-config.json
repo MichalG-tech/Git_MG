@@ -1,0 +1,47 @@
+{
+  "data_volume": {
+    "num_customers": 5000,
+    "num_products": 1500,
+    "num_regions": 50,
+    "date_range_years": 5,
+    "avg_transactions_per_customer_per_month": 2.5,
+    "total_transactions_target": 500000,
+    "return_rate": 0.05
+  },
+  "date_range": {
+    "start_date": "2021-01-01",
+    "end_date": "2026-04-22"
+  },
+  "realistic_patterns": {
+    "seasonal_variation": true,
+    "holiday_spikes": [
+      "2021-12-25",
+      "2022-11-28",
+      "2022-12-25",
+      "2023-11-27",
+      "2023-12-25",
+      "2024-11-25",
+      "2024-12-25",
+      "2025-11-24",
+      "2025-12-25"
+    ],
+    "weekend_ratio": 0.3,
+    "customer_churn_rate": 0.02,
+    "new_customers_per_month": 50
+  },
+  "data_quality": {
+    "validate_referential_integrity": true,
+    "validate_ranges": true,
+    "check_duplicates": true,
+    "min_order_value": 10,
+    "max_order_value": 50000,
+    "min_quantity": 1,
+    "max_quantity": 1000
+  },
+  "output": {
+    "format": "csv",
+    "encoding": "utf-8",
+    "output_location": "data/raw/",
+    "include_quality_report": true
+  }
+}
