@@ -1,0 +1,24 @@
+# Line endings - enforce LF for consistency across Windows/Mac/Linux
+* text=auto
+*.tmdl text eol=lf
+*.py text eol=lf
+*.md text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.csv text eol=lf
+*.sql text eol=lf
+*.txt text eol=lf
+
+# Binary files
+*.pbir binary
+*.pbix binary
+*.pbit binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.pdf binary
+
+# Diff settings for TMDL files
+*.tmdl diff=text
