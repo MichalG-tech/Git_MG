@@ -74,5 +74,5 @@ relationship fa-rel-011-0000-0000-0000-000000000001
 relationship fa-rel-012-0000-0000-0000-000000000001
 	fromCardinality: many
 	fromColumn: DimCustomer.RegionID
-	toCardinality: one
+	isActive: false
 	toColumn: DimRegion.RegionID
