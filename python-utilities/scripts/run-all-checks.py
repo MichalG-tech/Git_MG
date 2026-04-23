@@ -1,95 +1,141 @@
 #!/usr/bin/env python
 """
 Run All Checks
-Run complete validation suite
+Runs the complete validation suite against all semantic models.
 """
 
 import sys
 import os
+import subprocess
 from pathlib import Path
 
-# Add src to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+# Fix Windows encoding before any output
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8')
+
+# Resolve paths relative to this script, not the working directory
+SCRIPT_DIR = Path(__file__).resolve().parent
+REPO_ROOT   = SCRIPT_DIR.parent.parent
+MODELS_DIR  = REPO_ROOT / "semantic-models"
+
+# Add src to path for imports
+sys.path.insert(0, str(SCRIPT_DIR.parent / "src"))
 
 from validators.tmdl_validator import validate_tmdl_directory
 from validators.best_practices_checker import check_file
 
 
+def run_tmdl_validation(model_path: Path) -> tuple:
+    """Returns (passed: bool, message: str)."""
+    try:
+        result = validate_tmdl_directory(str(model_path))
+        if result['total_errors'] == 0:
+            return True, f"[OK] {model_path.name}: {result['files_checked']} files, {result['total_warnings']} warnings"
+        else:
+            return False, f"[ERROR] {model_path.name}: {result['total_errors']} errors found"
+    except Exception as exc:
+        return False, f"[ERROR] {model_path.name}: {exc}"
+
+
+def run_best_practices(model_path: Path) -> tuple:
+    """Returns (passed: bool, message: str)."""
+    try:
+        tmdl_files = list(model_path.glob("**/*.tmdl"))
+        if not tmdl_files:
+            return True, f"[OK] {model_path.name}: no TMDL files found"
+
+        violations = 0
+        errors = 0
+        for f in tmdl_files:
+            result = check_file(str(f))
+            violations += result['warning_count']
+            errors     += result['error_count']
+
+        if errors == 0 and violations == 0:
+            return True, f"[OK] {model_path.name}: {len(tmdl_files)} files, no violations"
+        elif errors > 0:
+            return False, f"[ERROR] {model_path.name}: {errors} errors, {violations} warnings"
+        else:
+            return False, f"[WARN] {model_path.name}: {violations} best practice violations"
+    except Exception as exc:
+        return False, f"[ERROR] {model_path.name}: {exc}"
+
+
 def main():
-    """Run all checks"""
     print("=" * 70)
     print("POWER BI ENTERPRISE POC - COMPLETE VALIDATION SUITE")
     print("=" * 70)
 
     all_passed = True
 
-    # Check 1: TMDL Validation
+    # Discover semantic models
+    model_dirs = sorted([d for d in MODELS_DIR.iterdir() if d.is_dir()]) if MODELS_DIR.exists() else []
+
+    # ------------------------------------------------------------------ #
+    #  Check 1: TMDL Syntax Validation                                    #
+    # ------------------------------------------------------------------ #
     print("\n[1/3] TMDL Syntax Validation")
     print("-" * 70)
-    try:
-        model_dir = "../../semantic-models/sales-analytics"
-        if Path(model_dir).exists():
-            result = validate_tmdl_directory(model_dir)
-            if result['total_errors'] == 0:
-                print(f"✓ TMDL valid ({result['files_checked']} files)")
-            else:
-                print(f"✗ TMDL errors found: {result['total_errors']}")
-                all_passed = False
-        else:
-            print("⊘ No semantic models to validate yet")
-    except Exception as e:
-        print(f"✗ Error: {e}")
-        all_passed = False
 
-    # Check 2: Best Practices
+    if not model_dirs:
+        print("  [SKIP] No semantic model directories found")
+    else:
+        for model_path in model_dirs:
+            passed, msg = run_tmdl_validation(model_path)
+            print(f"  {msg}")
+            if not passed:
+                all_passed = False
+
+    # ------------------------------------------------------------------ #
+    #  Check 2: Best Practices                                            #
+    # ------------------------------------------------------------------ #
     print("\n[2/3] Best Practices Check")
     print("-" * 70)
-    try:
-        if Path(model_dir).exists():
-            tmdl_files = list(Path(model_dir).glob("**/*.tmdl"))
-            if tmdl_files:
-                violations = 0
-                for tmdl_file in tmdl_files:
-                    result = check_file(str(tmdl_file))
-                    violations += result['warning_count']
 
-                if violations == 0:
-                    print(f"✓ Best practices check passed ({len(tmdl_files)} files)")
-                else:
-                    print(f"⊘ Found {violations} best practice violations")
-            else:
-                print("⊘ No TMDL files to check")
-        else:
-            print("⊘ No semantic models to validate yet")
-    except Exception as e:
-        print(f"✗ Error: {e}")
-        all_passed = False
+    if not model_dirs:
+        print("  [SKIP] No semantic model directories found")
+    else:
+        for model_path in model_dirs:
+            passed, msg = run_best_practices(model_path)
+            print(f"  {msg}")
+            if not passed:
+                all_passed = False
 
-    # Check 3: Python Tests
+    # ------------------------------------------------------------------ #
+    #  Check 3: Python Unit Tests                                         #
+    # ------------------------------------------------------------------ #
     print("\n[3/3] Python Unit Tests")
     print("-" * 70)
-    try:
-        import subprocess
-        result = subprocess.run([sys.executable, "-m", "pytest", "tests/", "-v", "--tb=short"],
-                               capture_output=True, text=True, cwd="..")
-        if result.returncode == 0:
-            print("✓ All tests passed")
-        else:
-            print(f"⊘ Some tests failed (run pytest for details)")
-    except Exception as e:
-        print(f"⊘ Could not run pytest: {e}")
 
-    # Final Summary
+    tests_dir = SCRIPT_DIR.parent / "tests"
+    try:
+        result = subprocess.run(
+            [sys.executable, "-m", "pytest", str(tests_dir), "-v", "--tb=short"],
+            capture_output=True, text=True, encoding="utf-8"
+        )
+        if result.returncode == 0:
+            print("  [OK] All unit tests passed")
+        else:
+            print("  [FAIL] Some unit tests failed")
+            # Print the last 20 lines of pytest output for context
+            lines = (result.stdout + result.stderr).splitlines()
+            for line in lines[-20:]:
+                print(f"    {line}")
+            all_passed = False
+    except Exception as exc:
+        print(f"  [SKIP] Could not run pytest: {exc}")
+
+    # ------------------------------------------------------------------ #
+    #  Summary                                                            #
+    # ------------------------------------------------------------------ #
     print("\n" + "=" * 70)
     print("VALIDATION SUMMARY")
     print("=" * 70)
     if all_passed:
-        print("✓ ALL CHECKS PASSED")
-        print("\nReady to commit and deploy!")
+        print("[OK] ALL CHECKS PASSED - ready to commit and deploy")
         return 0
     else:
-        print("✗ SOME CHECKS FAILED")
-        print("\nPlease fix errors before proceeding")
+        print("[FAIL] SOME CHECKS FAILED - fix errors before proceeding")
         return 1
 
 

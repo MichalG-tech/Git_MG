@@ -1,0 +1,133 @@
+name: Deploy to Staging
+
+# Triggers on stable release creation (v*.*.* without -rc suffix)
+# or manually via workflow_dispatch with required approval.
+#
+# Purpose: Staging is a production mirror used for final validation
+# before the release window. Changes require explicit sign-off from
+# a repository maintainer via GitHub Environments protection rules.
+# Any issue found in Staging prevents it from reaching Production.
+#
+# Environment: Staging workspace in Power BI Service
+# Audience: Senior analysts, report authors, IT operations
+# Gate: Manual approval required (GitHub Environment protection rule)
+
+on:
+  release:
+    types: [released]
+
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version to deploy (e.g. v1.1.0)"
+        required: true
+      change_ticket:
+        description: "Change management ticket reference (e.g. CHG-1234)"
+        required: true
+      approver:
+        description: "Name of the approving stakeholder"
+        required: true
+
+env:
+  ENVIRONMENT: staging
+  POWERBI_WORKSPACE_ID: ${{ secrets.STAGING_WORKSPACE_ID }}
+  POWERBI_CLIENT_ID: ${{ secrets.POWERBI_CLIENT_ID }}
+  POWERBI_TENANT_ID: ${{ secrets.POWERBI_TENANT_ID }}
+
+jobs:
+  request-approval:
+    name: Request Deployment Approval
+    runs-on: ubuntu-latest
+    environment: staging   # This environment has a required reviewer configured
+    # GitHub pauses here until a repository maintainer approves in the UI.
+    # This is the primary governance control for Staging deployments.
+    steps:
+      - name: Confirm approval granted
+        run: |
+          echo "Staging deployment approved."
+          echo "Version: ${{ github.event.release.tag_name || inputs.version }}"
+          echo "Change ticket: ${{ inputs.change_ticket || 'N/A (release event)' }}"
+          echo "Approver: ${{ inputs.approver || github.actor }}"
+
+  deploy-staging:
+    name: Deploy Sales Analytics → Staging
+    runs-on: ubuntu-latest
+    needs: request-approval
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout release
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name || inputs.version }}
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r python-utilities/requirements.txt
+
+      # ---------------------------------------------------------------
+      # Staging requires the same validation as Test PLUS an explicit
+      # check that the version number matches what was approved.
+      # ---------------------------------------------------------------
+      - name: Validate version consistency
+        run: |
+          EXPECTED="${{ github.event.release.tag_name || inputs.version }}"
+          ACTUAL="v$(cat VERSION)"
+          echo "Expected version: $EXPECTED"
+          echo "Actual version in repo: $ACTUAL"
+          if [ "$EXPECTED" != "$ACTUAL" ]; then
+            echo "ERROR: Version mismatch. The release tag does not match VERSION file."
+            exit 1
+          fi
+          echo "Version consistent."
+
+      - name: Run full validation suite
+        run: |
+          echo "=== Pre-deployment Validation (Staging) ==="
+          cd python-utilities && pip install pytest
+          python scripts/run-all-checks.py
+
+      - name: Deploy to Staging workspace
+        run: |
+          echo "=== Deploying to Staging ==="
+          python -c "
+          import sys
+          sys.path.insert(0, 'python-utilities/src')
+          from deployers import deploy_to_staging
+          result = deploy_to_staging(
+              model_path='semantic-models/sales-analytics',
+              workspace_id='${{ env.POWERBI_WORKSPACE_ID }}',
+              version='${{ github.event.release.tag_name || inputs.version }}'
+          )
+          print(f'Result: {result}')
+          "
+
+      - name: Create deployment audit entry
+        if: success()
+        run: |
+          ENTRY="$(date -u '+%Y-%m-%d %H:%M UTC') | ${{ github.event.release.tag_name || inputs.version }} | ${{ inputs.approver || github.actor }} | Staging | SUCCESS | Ticket: ${{ inputs.change_ticket || 'N/A' }}"
+          echo "$ENTRY" >> deployment/change-log/releases/deployment-log.txt
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add deployment/change-log/releases/deployment-log.txt
+          git commit -m "chore(deploy): Log Staging deployment ${{ github.event.release.tag_name || inputs.version }}" || true
+          git push || true
+
+      - name: Write deployment summary
+        if: always()
+        run: |
+          echo "## Staging Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Field | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| Environment | **Staging** |" >> $GITHUB_STEP_SUMMARY
+          echo "| Version | ${{ github.event.release.tag_name || inputs.version }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Change Ticket | ${{ inputs.change_ticket || 'N/A' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Approver | ${{ inputs.approver || github.actor }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Status | ${{ job.status }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Timestamp | $(date -u '+%Y-%m-%d %H:%M UTC') |" >> $GITHUB_STEP_SUMMARY

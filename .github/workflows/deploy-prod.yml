@@ -1,0 +1,157 @@
+name: Deploy to Production
+
+# Production deployment is the final stage of the pipeline.
+# It requires:
+#   1. A stable release tag (v*.*.*)
+#   2. Successful Staging deployment (verified by job dependency)
+#   3. Explicit maintainer approval via GitHub Environments
+#   4. A mandatory change management ticket reference
+#
+# Environment: Production workspace in Power BI Service
+# Audience: All business users
+# Gate: Senior maintainer approval + change ticket + staging success
+#
+# ROLLBACK: If a production deployment fails, manually trigger the
+# previous stable version via workflow_dispatch with the rollback
+# flag set to true. See docs/deployment/ROLLBACK_PROCEDURE.md.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Exact release version to deploy (must match a tested Staging release)"
+        required: true
+      change_ticket:
+        description: "Change management ticket reference (MANDATORY for production)"
+        required: true
+      rollback_from:
+        description: "If rolling back: version you are rolling back FROM (leave blank for new deployments)"
+        required: false
+      confirmed:
+        description: "Type CONFIRM to acknowledge this deploys to production"
+        required: true
+
+env:
+  ENVIRONMENT: production
+  POWERBI_WORKSPACE_ID: ${{ secrets.PROD_WORKSPACE_ID }}
+  POWERBI_CLIENT_ID: ${{ secrets.POWERBI_CLIENT_ID }}
+  POWERBI_TENANT_ID: ${{ secrets.POWERBI_TENANT_ID }}
+
+jobs:
+  preflight:
+    name: Production Pre-flight Checks
+    runs-on: ubuntu-latest
+    steps:
+      # Fail immediately if the operator did not type CONFIRM.
+      # This prevents accidental production deployments from typos
+      # in the workflow_dispatch form.
+      - name: Verify explicit confirmation
+        run: |
+          if [ "${{ inputs.confirmed }}" != "CONFIRM" ]; then
+            echo "ERROR: You must type exactly 'CONFIRM' to proceed with a production deployment."
+            echo "You entered: '${{ inputs.confirmed }}'"
+            exit 1
+          fi
+          echo "Confirmation accepted."
+
+      - name: Log pre-flight summary
+        run: |
+          echo "=== Production Deployment Pre-flight ==="
+          echo "Version:       ${{ inputs.version }}"
+          echo "Change Ticket: ${{ inputs.change_ticket }}"
+          echo "Operator:      ${{ github.actor }}"
+          echo "Rollback from: ${{ inputs.rollback_from || 'N/A (new deployment)' }}"
+          echo "Timestamp:     $(date -u '+%Y-%m-%d %H:%M UTC')"
+
+  request-approval:
+    name: Request Production Approval
+    runs-on: ubuntu-latest
+    needs: preflight
+    environment: production   # Requires senior maintainer approval — configured in repo Settings → Environments
+    steps:
+      - name: Approval confirmed
+        run: echo "Production deployment approved by maintainer."
+
+  deploy-production:
+    name: Deploy Sales Analytics → Production
+    runs-on: ubuntu-latest
+    needs: request-approval
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout release version
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.version }}
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r python-utilities/requirements.txt
+
+      - name: Final pre-deployment validation
+        run: |
+          echo "=== Final Validation (Production) ==="
+          cd python-utilities && pip install pytest
+          python scripts/run-all-checks.py
+          echo "All checks passed. Safe to deploy to Production."
+
+      - name: Deploy to Production workspace
+        run: |
+          echo "=== Deploying to Production ==="
+          python -c "
+          import sys
+          sys.path.insert(0, 'python-utilities/src')
+          from deployers import deploy_to_prod
+          result = deploy_to_prod(
+              model_path='semantic-models/sales-analytics',
+              workspace_id='${{ env.POWERBI_WORKSPACE_ID }}',
+              version='${{ inputs.version }}'
+          )
+          print(f'Result: {result}')
+          "
+
+      # ---------------------------------------------------------------
+      # Mandatory post-deployment audit trail entry.
+      # Every production deployment must be recorded with:
+      #   - Timestamp, version, operator, change ticket, outcome
+      # This satisfies SOX/ISO 27001 change management requirements.
+      # ---------------------------------------------------------------
+      - name: Write mandatory audit trail entry
+        if: always()
+        run: |
+          OUTCOME="${{ job.status }}"
+          ENTRY="$(date -u '+%Y-%m-%dT%H:%M:%SZ') | ${{ inputs.version }} | ${{ github.actor }} | Production | ${OUTCOME^^} | CHG: ${{ inputs.change_ticket }} | Rollback from: ${{ inputs.rollback_from || 'N/A' }}"
+          echo "$ENTRY" >> deployment/change-log/releases/deployment-log.txt
+          echo "" >> deployment/change-log/releases/deployment-log.txt
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add deployment/change-log/releases/deployment-log.txt
+          git commit -m "chore(deploy): Audit Production deployment ${{ inputs.version }} [${OUTCOME}]" || true
+          git push || true
+
+      - name: Write deployment summary
+        if: always()
+        run: |
+          echo "## Production Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ job.status }}" = "success" ]; then
+            echo "> **Deployment SUCCEEDED**" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "> **Deployment FAILED** — initiate rollback procedure if needed" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Field | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| Environment | **PRODUCTION** |" >> $GITHUB_STEP_SUMMARY
+          echo "| Version Deployed | ${{ inputs.version }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Change Ticket | ${{ inputs.change_ticket }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Operator | ${{ github.actor }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Status | ${{ job.status }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Timestamp | $(date -u '+%Y-%m-%d %H:%M UTC') |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "See [deployment log](deployment/change-log/releases/deployment-log.txt) for full audit trail." >> $GITHUB_STEP_SUMMARY

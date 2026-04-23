@@ -73,6 +73,14 @@ class TMDLValidator:
 
     def _check_structure(self, content: str, file_path: str) -> None:
         """Check TMDL structure"""
+        parent_dir = Path(file_path).parent.name
+
+        # Non-table files (cultures, definition, relationships) don't contain
+        # tables, measures, or descriptions — skip structural checks for them.
+        non_table_dirs = {'cultures', 'definition', 'relationships', 'roles'}
+        if parent_dir in non_table_dirs:
+            return
+
         # Check for required sections
         if 'table' not in content.lower() and 'measure' not in content.lower():
             self.warnings.append("No tables or measures found in file")
@@ -86,15 +94,22 @@ class TMDLValidator:
         lines = content.split('\n')
 
         for i, line in enumerate(lines, 1):
-            # Check measure naming
+            # Check measure naming — Title Case (first letter uppercase)
             if 'measure' in line.lower() and '=' in line:
-                if not any(x in line for x in ['measure_', ' [', 'Measure']):
-                    self.warnings.append(f"Line {i}: Measure might not follow naming convention")
+                import re
+                m = re.match(r"\s*measure\s+['\"]?([^'\"=]+)['\"]?\s*=", line, re.IGNORECASE)
+                if m:
+                    name = m.group(1).strip()
+                    if name and not name[0].isupper():
+                        self.warnings.append(f"Line {i}: Measure '{name}' should start with uppercase (Title Case)")
 
-            # Check table naming
+            # Check table naming — Dim/Fact prefix, or _ prefix for hidden utility tables
             if line.strip().startswith('table'):
-                if not any(x in line for x in ['Dim', 'Fact']):
-                    self.warnings.append(f"Line {i}: Table should start with 'Dim' or 'Fact'")
+                parts = line.strip().split()
+                if len(parts) >= 2:
+                    table_name = parts[1]
+                    if not (table_name.startswith('Dim') or table_name.startswith('Fact') or table_name.startswith('_')):
+                        self.warnings.append(f"Line {i}: Table '{table_name}' should start with 'Dim', 'Fact', or '_' (hidden utility)")
 
     def _format_results(self, file_path: str) -> Dict:
         """Format validation results"""

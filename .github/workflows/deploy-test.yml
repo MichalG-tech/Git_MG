@@ -1,0 +1,105 @@
+name: Deploy to Test
+
+# Triggers on GitHub release creation (pre-release tag pattern: v*.*.*-rc*)
+# or manually via workflow_dispatch.
+#
+# Purpose: Provide QA/testers with a stable, version-tagged snapshot to
+# validate before staging promotion. Unlike Dev (continuous), Test
+# receives only release-candidate builds.
+#
+# Environment: Test workspace in Power BI Service
+# Audience: QA team, business analysts performing UAT
+# Gate: Pre-deployment validation + release tag required
+
+on:
+  release:
+    types: [prereleased]
+
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to deploy (e.g. v1.1.0-rc1)"
+        required: true
+      reason:
+        description: "Reason for manual deployment"
+        required: false
+
+env:
+  ENVIRONMENT: test
+  POWERBI_WORKSPACE_ID: ${{ secrets.TEST_WORKSPACE_ID }}
+  POWERBI_CLIENT_ID: ${{ secrets.POWERBI_CLIENT_ID }}
+  POWERBI_TENANT_ID: ${{ secrets.POWERBI_TENANT_ID }}
+
+jobs:
+  deploy-test:
+    name: Deploy Sales Analytics → Test
+    runs-on: ubuntu-latest
+    environment: test
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout release tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name || inputs.version }}
+
+      - name: Log deployment context
+        run: |
+          echo "Deploying version: ${{ github.event.release.tag_name || inputs.version }}"
+          echo "Triggered by: ${{ github.actor }}"
+          echo "Environment: Test"
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r python-utilities/requirements.txt
+
+      - name: Run full validation suite
+        run: |
+          echo "=== Pre-deployment Validation (Test) ==="
+          cd python-utilities && pip install pytest
+          python scripts/run-all-checks.py
+          echo "All checks passed."
+
+      - name: Deploy to Test workspace
+        run: |
+          echo "=== Deploying to Test ==="
+          python -c "
+          import sys
+          sys.path.insert(0, 'python-utilities/src')
+          from deployers import deploy_to_test
+          result = deploy_to_test(
+              model_path='semantic-models/sales-analytics',
+              workspace_id='${{ env.POWERBI_WORKSPACE_ID }}',
+              version='${{ github.event.release.tag_name || inputs.version }}'
+          )
+          print(f'Result: {result}')
+          "
+
+      - name: Create deployment log entry
+        if: success()
+        run: |
+          echo "$(date -u '+%Y-%m-%d %H:%M UTC') | ${{ github.event.release.tag_name || inputs.version }} | ${{ github.actor }} | Test | SUCCESS" \
+            >> deployment/change-log/releases/deployment-log.txt
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add deployment/change-log/releases/deployment-log.txt
+          git commit -m "chore(deploy): Log Test deployment ${{ github.event.release.tag_name || inputs.version }}" || true
+          git push || true
+
+      - name: Write deployment summary
+        if: always()
+        run: |
+          echo "## Test Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Field | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| Environment | **Test** |" >> $GITHUB_STEP_SUMMARY
+          echo "| Version | ${{ github.event.release.tag_name || inputs.version }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Status | ${{ job.status }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Deployed by | ${{ github.actor }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Timestamp | $(date -u '+%Y-%m-%d %H:%M UTC') |" >> $GITHUB_STEP_SUMMARY

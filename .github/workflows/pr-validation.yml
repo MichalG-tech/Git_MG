@@ -1,0 +1,143 @@
+name: PR Validation
+
+# Runs on every pull request targeting main or develop.
+# Purpose: Gate every code change through automated quality checks before
+# a human reviewer even looks at it. Catches TMDL syntax errors, DAX
+# anti-patterns, and naming convention violations in under 2 minutes,
+# saving reviewers from catching mechanical issues during code review.
+
+on:
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - "semantic-models/**"
+      - "python-utilities/**"
+      - "config/**"
+
+jobs:
+  validate:
+    name: Validate TMDL & Python
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      # ---------------------------------------------------------------
+      # 1. Checkout the branch being merged (not the base branch)
+      # ---------------------------------------------------------------
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history needed for change detection
+
+      # ---------------------------------------------------------------
+      # 2. Set up Python — pin to 3.11 to match the local dev environment
+      # ---------------------------------------------------------------
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      # ---------------------------------------------------------------
+      # 3. Install dependencies from the pinned requirements file
+      # ---------------------------------------------------------------
+      - name: Install Python dependencies
+        run: pip install -r python-utilities/requirements.txt
+
+      # ---------------------------------------------------------------
+      # 4. Run TMDL syntax validation across all model files
+      #    Fails the build if any TMDL file has unbalanced brackets or
+      #    is missing required structural elements.
+      # ---------------------------------------------------------------
+      - name: Validate TMDL syntax
+        run: |
+          echo "=== TMDL Syntax Validation ==="
+          python -c "
+          import sys, os
+          sys.path.insert(0, 'python-utilities/src')
+          from validators.tmdl_validator import validate_directory
+          errors = 0
+          for model_dir in ['semantic-models/sales-analytics', 'semantic-models/finance-reporting']:
+              if os.path.exists(model_dir):
+                  result = validate_directory(model_dir)
+                  print(f'{model_dir}: {result}')
+                  if result.get('error_count', 0) > 0:
+                      errors += 1
+          sys.exit(errors)
+          "
+
+      # ---------------------------------------------------------------
+      # 5. Run best practices checker — naming conventions, descriptions,
+      #    forbidden patterns, table organisation
+      # ---------------------------------------------------------------
+      - name: Check best practices
+        run: |
+          echo "=== Best Practices Check ==="
+          python -c "
+          import sys, os
+          sys.path.insert(0, 'python-utilities/src')
+          from validators.best_practices_checker import BestPracticesChecker
+          import glob
+
+          checker = BestPracticesChecker('python-utilities/src/validators/naming_conventions.json')
+          errors = 0
+          files = glob.glob('semantic-models/**/*.tmdl', recursive=True)
+          for f in files:
+              result = checker.check_file(f)
+              status = 'PASS' if result['passed'] else 'FAIL'
+              print(f'[{status}] {f}')
+              if result['error_count'] > 0:
+                  for e in result['errors']:
+                      print(f'  ERROR: {e}')
+                  errors += 1
+          print(f'Checked {len(files)} files. Errors: {errors}')
+          sys.exit(errors)
+          "
+
+      # ---------------------------------------------------------------
+      # 6. Run unit tests for the Python utilities themselves
+      #    Prevents regression in the validation tooling
+      # ---------------------------------------------------------------
+      - name: Run Python unit tests
+        run: |
+          echo "=== Unit Tests ==="
+          cd python-utilities
+          pip install pytest pytest-cov
+          pytest tests/ -v --tb=short --cov=src --cov-report=term-missing
+
+      # ---------------------------------------------------------------
+      # 7. Check that changed TMDL files have a corresponding CHANGELOG entry
+      #    Enforces documentation discipline on every model change.
+      # ---------------------------------------------------------------
+      - name: Check CHANGELOG updated
+        run: |
+          echo "=== CHANGELOG Check ==="
+          CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- semantic-models/)
+          if [ -n "$CHANGED" ]; then
+            if ! git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -q "CHANGELOG.md"; then
+              echo "WARNING: Semantic model changes detected but CHANGELOG.md was not updated."
+              echo "Please add an entry describing your changes."
+              echo "Changed files:"
+              echo "$CHANGED"
+              # Warning only (not a hard failure) — change to 'exit 1' to enforce
+            else
+              echo "CHANGELOG.md updated. OK."
+            fi
+          else
+            echo "No semantic model changes. CHANGELOG check skipped."
+          fi
+
+  # ---------------------------------------------------------------
+  # Tabular Editor CLI validation (optional — requires TE3 licence)
+  # Uncomment when Tabular Editor CLI is available in the runner.
+  # ---------------------------------------------------------------
+  # tabular-editor-check:
+  #   name: Tabular Editor Validation
+  #   runs-on: windows-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Install Tabular Editor CLI
+  #       run: choco install tabulareditor3 -y
+  #     - name: Validate with Tabular Editor
+  #       run: |
+  #         TabularEditor3.exe "semantic-models/sales-analytics" -S

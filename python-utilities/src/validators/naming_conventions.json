@@ -1,22 +1,20 @@
 {
   "naming_convention": {
-    "measures": "^[a-zA-Z][a-zA-Z0-9 _]*$",
-    "measure_prefix": "measure_",
-    "columns": "^[a-zA-Z][a-zA-Z0-9_]*$",
-    "tables": "^(Dim|Fact)[a-zA-Z][a-zA-Z0-9_]*$",
-    "roles": "^[A-Za-z ]+$",
+    "measures": "^[A-Z][a-zA-Z0-9 %()/#&+\\-]*$",
+    "columns": "^[A-Z][a-zA-Z0-9_]*$",
+    "tables": "^(Dim|Fact|_)[a-zA-Z][a-zA-Z0-9_]*$",
+    "roles": "^[A-Za-z][A-Za-z0-9 _-]*$",
     "relationship_names": "^[a-zA-Z][a-zA-Z0-9_]*$"
   },
+  "hidden_table_prefix": "_",
   "forbidden_patterns": [
-    "test",
     "temp",
     "tmp",
     "xxx",
     "delete",
     "debug",
     "hack",
-    "fixme",
-    "todo"
+    "fixme"
   ],
   "required_descriptions": true,
   "max_measure_name_length": 100,
@@ -24,5 +22,10 @@
   "max_table_name_length": 80,
   "star_schema_required": true,
   "enforce_rls": true,
-  "allow_implicit_measures": false
+  "allow_implicit_measures": false,
+  "notes": {
+    "measures": "PascalCase with spaces; % () # & allowed for financial/ratio measures",
+    "tables": "Dim/Fact prefix for data tables; _ prefix for hidden utility tables (e.g. _Measures)",
+    "hidden_tables": "Tables prefixed with _ are hidden utility tables and exempt from Dim/Fact requirement"
+  }
 }

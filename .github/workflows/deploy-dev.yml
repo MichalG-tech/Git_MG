@@ -1,0 +1,109 @@
+name: Deploy to Dev
+
+# Triggers automatically on every push to the develop branch.
+# Purpose: Provide developers with a continuously-updated Dev environment
+# that reflects the latest code on develop. Zero manual steps required —
+# push code, wait 3 minutes, open Power BI Service to see the changes.
+#
+# Environment: Dev workspace in Power BI Service
+# Audience: Developers, model architects
+# Gate: Automated validation only (no manual approval)
+
+on:
+  push:
+    branches: [develop]
+    paths:
+      - "semantic-models/**"
+      - "data/**"
+
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: "Reason for manual deployment"
+        required: false
+        default: "Manual deploy triggered by developer"
+
+env:
+  ENVIRONMENT: dev
+  POWERBI_WORKSPACE_ID: ${{ secrets.DEV_WORKSPACE_ID }}
+  POWERBI_CLIENT_ID: ${{ secrets.POWERBI_CLIENT_ID }}
+  POWERBI_TENANT_ID: ${{ secrets.POWERBI_TENANT_ID }}
+
+jobs:
+  deploy-dev:
+    name: Deploy Sales Analytics → Dev
+    runs-on: ubuntu-latest
+    environment: dev
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout develop branch
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r python-utilities/requirements.txt
+
+      # ---------------------------------------------------------------
+      # Pre-deployment validation — never deploy without passing checks.
+      # If validation fails, the deployment is aborted and the developer
+      # is notified via the GitHub Actions UI.
+      # ---------------------------------------------------------------
+      - name: Pre-deployment validation
+        run: |
+          echo "=== Pre-deployment Validation ==="
+          cd python-utilities
+          pip install pytest
+          python scripts/run-all-checks.py
+          echo "Validation passed. Proceeding with deployment."
+
+      # ---------------------------------------------------------------
+      # Deploy using the Python deployer module.
+      # The deployer reads model files from semantic-models/ and pushes
+      # them to the target Power BI workspace via the XMLA endpoint.
+      # ---------------------------------------------------------------
+      - name: Deploy to Dev workspace
+        run: |
+          echo "=== Deploying to Dev ==="
+          python -c "
+          import sys
+          sys.path.insert(0, 'python-utilities/src')
+          from deployers import deploy_to_dev
+          result = deploy_to_dev(
+              model_path='semantic-models/sales-analytics',
+              workspace_id='${{ env.POWERBI_WORKSPACE_ID }}',
+              client_id='${{ env.POWERBI_CLIENT_ID }}',
+              tenant_id='${{ env.POWERBI_TENANT_ID }}',
+              client_secret='${{ secrets.POWERBI_CLIENT_SECRET }}'
+          )
+          print(f'Deployment result: {result}')
+          "
+
+      # ---------------------------------------------------------------
+      # Post-deployment: write a summary to the GitHub Actions job log
+      # so developers can quickly verify what was deployed and when.
+      # ---------------------------------------------------------------
+      - name: Write deployment summary
+        if: always()
+        run: |
+          echo "## Dev Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Field | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| Environment | Dev |" >> $GITHUB_STEP_SUMMARY
+          echo "| Branch | ${{ github.ref_name }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Commit | ${{ github.sha }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Triggered by | ${{ github.actor }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Timestamp | $(date -u '+%Y-%m-%d %H:%M UTC') |" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ job.status }}" = "success" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "> Deployment **succeeded**. Open [Power BI Dev workspace](${{ vars.DEV_WORKSPACE_URL }}) to verify." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "> Deployment **failed**. Check the job logs above for details." >> $GITHUB_STEP_SUMMARY
+          fi
