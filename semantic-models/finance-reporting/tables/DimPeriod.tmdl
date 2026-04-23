@@ -1,0 +1,162 @@
+table DimPeriod
+	lineageTag: pe000003-0000-0000-0000-000000000001
+	dataCategory: Time
+	description: Financial period dimension aligned to the April fiscal year calendar. Each row represents one calendar month with both calendar and fiscal attributes. PeriodEndDate is used as the date column for time intelligence in financial reporting (budgets and actuals are period-based, not daily).
+
+	column PeriodKey
+		dataType: int64
+		isHidden
+		lineageTag: pe000003-0001-0000-0000-000000000001
+		sourceColumn: PeriodKey
+		summarizeBy: none
+		description: Integer surrogate key for the period (sequential, 1 per month). Used as the relationship key between FactActuals/FactBudget and this dimension.
+
+		annotation SummarizationSetBy = Automatic
+
+	column PeriodCode
+		dataType: string
+		lineageTag: pe000003-0002-0000-0000-000000000001
+		sourceColumn: PeriodCode
+		summarizeBy: none
+		description: ISO year-month code (YYYY-MM). Unique identifier for each fiscal period; sortable chronologically as a string.
+
+		sortByColumn: PeriodKey
+
+	column Year
+		dataType: int64
+		lineageTag: pe000003-0003-0000-0000-000000000001
+		sourceColumn: Year
+		summarizeBy: none
+		description: Calendar year of the period.
+
+		annotation SummarizationSetBy = Automatic
+
+	column Quarter
+		dataType: int64
+		lineageTag: pe000003-0004-0000-0000-000000000001
+		sourceColumn: Quarter
+		summarizeBy: none
+		description: Calendar quarter (1–4).
+
+		annotation SummarizationSetBy = Automatic
+
+	column Month
+		dataType: int64
+		lineageTag: pe000003-0005-0000-0000-000000000001
+		sourceColumn: Month
+		summarizeBy: none
+		description: Calendar month number (1–12).
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthName
+		dataType: string
+		lineageTag: pe000003-0006-0000-0000-000000000001
+		sourceColumn: MonthName
+		summarizeBy: none
+		description: Full month name (January–December).
+
+		sortByColumn: Month
+
+	column FiscalYear
+		dataType: int64
+		lineageTag: pe000003-0007-0000-0000-000000000001
+		sourceColumn: FiscalYear
+		summarizeBy: none
+		description: Fiscal year (April start). FY2023 covers April 2022 through March 2023.
+
+		annotation SummarizationSetBy = Automatic
+
+	column FiscalPeriod
+		dataType: int64
+		lineageTag: pe000003-0008-0000-0000-000000000001
+		sourceColumn: FiscalPeriod
+		summarizeBy: none
+		description: Fiscal period number within the fiscal year (1=April through 12=March).
+
+		annotation SummarizationSetBy = Automatic
+
+	column PeriodStartDate
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: pe000003-0009-0000-0000-000000000001
+		sourceColumn: PeriodStartDate
+		summarizeBy: none
+		description: First calendar day of the financial period.
+
+		annotation SummarizationSetBy = Automatic
+
+	column PeriodEndDate
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: pe000003-0010-0000-0000-000000000001
+		sourceColumn: PeriodEndDate
+		summarizeBy: none
+		description: Last calendar day of the financial period. Used as the primary date column for time intelligence measures in this model.
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsCurrentPeriod
+		dataType: boolean
+		lineageTag: pe000003-0011-0000-0000-000000000001
+		sourceColumn: IsCurrentPeriod
+		summarizeBy: none
+		description: True for the most recently completed or current in-progress financial period. Use to default slicer selections to the current period in dashboard reports.
+
+	partition DimPeriod-Partition = m
+		mode: import
+		source =
+				let
+				    StartYear  = 2021,
+				    EndYear    = 2026,
+				    TodayDate  = DateTime.Date(DateTime.LocalNow()),
+				    Months     = List.Generate(
+				        () => #date(StartYear, 1, 1),
+				        each Date.Year(_) < EndYear or (Date.Year(_) = EndYear and Date.Month(_) <= 4),
+				        each Date.AddMonths(_, 1)
+				    ),
+				    ToRecord   = List.Transform(
+				        List.Zip({List.Numbers(1, List.Count(Months)), Months}),
+				        (pair) =>
+				            let
+				                key   = pair{0},
+				                dt    = pair{1},
+				                yr    = Date.Year(dt),
+				                mo    = Date.Month(dt),
+				                fmo   = Number.Mod(mo - 4 + 12, 12) + 1,
+				                fyr   = if mo >= 4 then yr + 1 else yr,
+				                edate = Date.EndOfMonth(dt)
+				            in [
+				                PeriodKey      = key,
+				                PeriodCode     = Text.From(yr) & "-" & Text.PadStart(Text.From(mo), 2, "0"),
+				                Year           = yr,
+				                Quarter        = Number.IntegerDivide(mo - 1, 3) + 1,
+				                Month          = mo,
+				                MonthName      = Date.ToText(dt, "MMMM"),
+				                FiscalYear     = fyr,
+				                FiscalPeriod   = fmo,
+				                PeriodStartDate = dt,
+				                PeriodEndDate   = edate,
+				                IsCurrentPeriod = (yr = Date.Year(TodayDate) and mo = Date.Month(TodayDate))
+				            ]
+				    ),
+				    Table = Table.FromRecords(
+				        ToRecord,
+				        type table [
+				            PeriodKey = Int64.Type,
+				            PeriodCode = type text,
+				            Year = Int64.Type,
+				            Quarter = Int64.Type,
+				            Month = Int64.Type,
+				            MonthName = type text,
+				            FiscalYear = Int64.Type,
+				            FiscalPeriod = Int64.Type,
+				            PeriodStartDate = type date,
+				            PeriodEndDate = type date,
+				            IsCurrentPeriod = type logical
+				        ]
+				    )
+				in
+				    Table
+
+	annotation PBI_ResultType = Table

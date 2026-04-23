@@ -1,0 +1,190 @@
+table DimDate
+	lineageTag: da000001-0000-0000-0000-000000000001
+	dataCategory: Time
+	description: Enriched date dimension providing calendar and fiscal time attributes for all fact tables. Mark as date table in Power BI Desktop (Table Tools → Mark as date table → Date) to enable time intelligence DAX functions.
+
+	column DateID
+		dataType: int64
+		isHidden
+		lineageTag: da000001-0001-0000-0000-000000000001
+		sourceColumn: DateID
+		summarizeBy: none
+		description: Surrogate integer key (sequential from 1). Used as the relationship key between fact tables and this dimension.
+
+		annotation SummarizationSetBy = Automatic
+
+	column Date
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: da000001-0002-0000-0000-000000000001
+		sourceColumn: Date
+		summarizeBy: none
+		description: Full calendar date (the primary column for Power BI time intelligence). Relationships from FactSales[DateID] → DimDate[DateID].
+
+		annotation SummarizationSetBy = Automatic
+
+	column Year
+		dataType: int64
+		lineageTag: da000001-0003-0000-0000-000000000001
+		sourceColumn: Year
+		summarizeBy: none
+		description: Calendar year number (2021–2026).
+
+		annotation SummarizationSetBy = Automatic
+
+	column Quarter
+		dataType: int64
+		lineageTag: da000001-0004-0000-0000-000000000001
+		sourceColumn: Quarter
+		summarizeBy: none
+		description: Calendar quarter number (1–4). Use QuarterName for display labels.
+
+		annotation SummarizationSetBy = Automatic
+
+	column QuarterName
+		dataType: string
+		lineageTag: da000001-0005-0000-0000-000000000001
+		sourceColumn: QuarterName
+		summarizeBy: none
+		description: Display label for the quarter (Q1, Q2, Q3, Q4). Sort by Quarter for correct chronological ordering.
+
+		sortByColumn: Quarter
+
+	column Month
+		dataType: int64
+		lineageTag: da000001-0006-0000-0000-000000000001
+		sourceColumn: Month
+		summarizeBy: none
+		description: Calendar month number (1–12). Use MonthName or MonthShortName for display labels.
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthName
+		dataType: string
+		lineageTag: da000001-0007-0000-0000-000000000001
+		sourceColumn: MonthName
+		summarizeBy: none
+		description: Full month name (January–December). Sorted by Month for correct chronological ordering in visuals.
+
+		sortByColumn: Month
+
+	column MonthShortName
+		dataType: string
+		lineageTag: da000001-0008-0000-0000-000000000001
+		sourceColumn: MonthShortName
+		summarizeBy: none
+		description: Three-letter month abbreviation (Jan–Dec). Sorted by Month for correct chronological ordering.
+
+		sortByColumn: Month
+
+	column YearMonth
+		dataType: string
+		lineageTag: da000001-0009-0000-0000-000000000001
+		sourceColumn: YearMonth
+		summarizeBy: none
+		description: ISO year-month label (YYYY-MM) for trend charts and matrix row headers. Sorted by DateID to guarantee chronological ordering.
+
+		sortByColumn: DateID
+
+	column YearQuarter
+		dataType: string
+		lineageTag: da000001-0010-0000-0000-000000000001
+		sourceColumn: YearQuarter
+		summarizeBy: none
+		description: Year and quarter label for display (e.g. 2023 Q1). Sorted by DateID for correct ordering.
+
+		sortByColumn: DateID
+
+	column Week
+		dataType: int64
+		lineageTag: da000001-0011-0000-0000-000000000001
+		sourceColumn: Week
+		summarizeBy: none
+		description: ISO calendar week number (1–53).
+
+		annotation SummarizationSetBy = Automatic
+
+	column DayOfWeek
+		dataType: int64
+		lineageTag: da000001-0012-0000-0000-000000000001
+		sourceColumn: DayOfWeek
+		summarizeBy: none
+		description: Day of week number (1=Monday through 7=Sunday). Use DayName for display.
+
+		annotation SummarizationSetBy = Automatic
+
+	column DayName
+		dataType: string
+		lineageTag: da000001-0013-0000-0000-000000000001
+		sourceColumn: DayName
+		summarizeBy: none
+		description: Full day name (Monday–Sunday). Sorted by DayOfWeek for correct day ordering in visuals.
+
+		sortByColumn: DayOfWeek
+
+	column IsWeekend
+		dataType: boolean
+		lineageTag: da000001-0014-0000-0000-000000000001
+		sourceColumn: IsWeekend
+		summarizeBy: none
+		description: True if the date is Saturday or Sunday. Used for Weekend vs Weekday Sales analysis.
+
+	column FiscalYear
+		dataType: int64
+		lineageTag: da000001-0015-0000-0000-000000000001
+		sourceColumn: FiscalYear
+		summarizeBy: none
+		description: Fiscal year number (April start). Example: April 2022 through March 2023 = FY2023.
+
+		annotation SummarizationSetBy = Automatic
+
+	column FiscalQuarter
+		dataType: int64
+		lineageTag: da000001-0016-0000-0000-000000000001
+		sourceColumn: FiscalQuarter
+		summarizeBy: none
+		description: Fiscal quarter number (1–4, where Q1 starts in April).
+
+		annotation SummarizationSetBy = Automatic
+
+	column FiscalMonth
+		dataType: int64
+		lineageTag: da000001-0017-0000-0000-000000000001
+		sourceColumn: FiscalMonth
+		summarizeBy: none
+		description: Fiscal month number (1–12, where 1=April). Used for fiscal period comparisons.
+
+		annotation SummarizationSetBy = Automatic
+
+	partition DimDate-Partition = m
+		mode: import
+		source =
+				let
+				    Source   = Csv.Document(
+				        File.Contents(DataFolderPath & "date_dimension.csv"),
+				        [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.None]
+				    ),
+				    Headers  = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				    Typed    = Table.TransformColumnTypes(Headers, {
+				        {"DateID",        Int64.Type},
+				        {"Date",          type date},
+				        {"Year",          Int64.Type},
+				        {"Quarter",       Int64.Type},
+				        {"QuarterName",   type text},
+				        {"Month",         Int64.Type},
+				        {"MonthName",     type text},
+				        {"MonthShortName",type text},
+				        {"YearMonth",     type text},
+				        {"YearQuarter",   type text},
+				        {"Week",          Int64.Type},
+				        {"DayOfWeek",     Int64.Type},
+				        {"DayName",       type text},
+				        {"IsWeekend",     type logical},
+				        {"FiscalYear",    Int64.Type},
+				        {"FiscalQuarter", Int64.Type},
+				        {"FiscalMonth",   Int64.Type}
+				    })
+				in
+				    Typed
+
+	annotation PBI_ResultType = Table

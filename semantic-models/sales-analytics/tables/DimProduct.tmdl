@@ -1,0 +1,91 @@
+table DimProduct
+	lineageTag: pr000003-0000-0000-0000-000000000001
+	description: Product master dimension containing category hierarchy, pricing, and cost attributes. UnitPrice (list price) and CostPrice enable gross margin analysis via RELATED() in the _Measures table without storing cost in the fact table.
+
+	column ProductID
+		dataType: string
+		lineageTag: pr000003-0001-0000-0000-000000000001
+		sourceColumn: ProductID
+		summarizeBy: none
+		description: Natural string key in format PROD000001. Used as the relationship key between FactSales and DimProduct.
+
+	column ProductName
+		dataType: string
+		lineageTag: pr000003-0002-0000-0000-000000000001
+		sourceColumn: ProductName
+		summarizeBy: none
+		description: Display name of the product. Primary product-level label used in product performance reports.
+
+	column Category
+		dataType: string
+		lineageTag: pr000003-0003-0000-0000-000000000001
+		sourceColumn: Category
+		summarizeBy: none
+		description: High-level product category (Electronics, Clothing, Home, Sports, Books, Food, Beauty). Top level of the product hierarchy.
+
+	column Subcategory
+		dataType: string
+		lineageTag: pr000003-0004-0000-0000-000000000001
+		sourceColumn: Subcategory
+		summarizeBy: none
+		description: Subcategory within the parent Category. Supports drill-down in product hierarchy visuals.
+
+	column Brand
+		dataType: string
+		lineageTag: pr000003-0005-0000-0000-000000000001
+		sourceColumn: Brand
+		summarizeBy: none
+		description: Brand name (Brand A–E). Enables brand-level performance analysis.
+
+	column UnitPrice
+		dataType: decimal
+		lineageTag: pr000003-0006-0000-0000-000000000001
+		sourceColumn: UnitPrice
+		summarizeBy: average
+		formatString: $ #,##0.00
+		description: Standard list price of the product. Used in the Price Realization % measure to compare actual selling price against list price.
+
+		annotation SummarizationSetBy = Automatic
+		annotation PBI_FormatHint = {"currencySymbol":"$"}
+
+	column CostPrice
+		dataType: decimal
+		lineageTag: pr000003-0007-0000-0000-000000000001
+		sourceColumn: CostPrice
+		summarizeBy: average
+		formatString: $ #,##0.00
+		description: Standard cost of the product. Used via RELATED(DimProduct[CostPrice]) in Gross Profit and Total Cost measures to avoid storing cost at the fact grain.
+
+		annotation SummarizationSetBy = Automatic
+		annotation PBI_FormatHint = {"currencySymbol":"$"}
+
+	column Status
+		dataType: string
+		lineageTag: pr000003-0008-0000-0000-000000000001
+		sourceColumn: Status
+		summarizeBy: none
+		description: Product lifecycle status (Active, Discontinued). Use as a slicer to focus on active products only.
+
+	partition DimProduct-Partition = m
+		mode: import
+		source =
+				let
+				    Source  = Csv.Document(
+				        File.Contents(DataFolderPath & "products.csv"),
+				        [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.None]
+				    ),
+				    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				    Typed   = Table.TransformColumnTypes(Headers, {
+				        {"ProductID",   type text},
+				        {"ProductName", type text},
+				        {"Category",    type text},
+				        {"Subcategory", type text},
+				        {"Brand",       type text},
+				        {"UnitPrice",   type number},
+				        {"CostPrice",   type number},
+				        {"Status",      type text}
+				    })
+				in
+				    Typed
+
+	annotation PBI_ResultType = Table

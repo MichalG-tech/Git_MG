@@ -1,0 +1,83 @@
+/// Finance Reporting — Relationship Definitions
+///
+/// Star schema relationships:
+///   FactActuals → DimPeriod    (PeriodKey)     — posting period
+///   FactActuals → DimAccount   (AccountKey)    — account classification
+///   FactActuals → DimDepartment (DepartmentKey)— cost centre
+///   FactActuals → DimEntity    (EntityKey)     — legal entity
+///   FactBudget  → DimPeriod    (PeriodKey)     — budget period
+///   FactBudget  → DimAccount   (AccountKey)    — budgeted account
+///   FactBudget  → DimDepartment (DepartmentKey)— budgeted cost centre
+///   FactBudget  → DimEntity    (EntityKey)     — budgeted entity
+///
+/// All fact-to-dimension relationships are many-to-one.
+/// FactBudget relationships are marked inactive by default; activate via
+/// USERELATIONSHIP() or cross-filtering in budget-specific measures.
+
+relationship fr-rel-001-0000-0000-0000-000000000001
+	fromCardinality: many
+	fromColumn: PeriodKey
+	fromTable: FactActuals
+	toCardinality: one
+	toColumn: PeriodKey
+	toTable: DimPeriod
+
+relationship fr-rel-002-0000-0000-0000-000000000001
+	fromCardinality: many
+	fromColumn: AccountKey
+	fromTable: FactActuals
+	toCardinality: one
+	toColumn: AccountKey
+	toTable: DimAccount
+
+relationship fr-rel-003-0000-0000-0000-000000000001
+	fromCardinality: many
+	fromColumn: DepartmentKey
+	fromTable: FactActuals
+	toCardinality: one
+	toColumn: DepartmentKey
+	toTable: DimDepartment
+
+relationship fr-rel-004-0000-0000-0000-000000000001
+	fromCardinality: many
+	fromColumn: EntityKey
+	fromTable: FactActuals
+	toCardinality: one
+	toColumn: EntityKey
+	toTable: DimEntity
+
+relationship fr-rel-005-0000-0000-0000-000000000001
+	fromCardinality: many
+	fromColumn: PeriodKey
+	fromTable: FactBudget
+	toCardinality: one
+	toColumn: PeriodKey
+	toTable: DimPeriod
+	isActive: false
+
+relationship fr-rel-006-0000-0000-0000-000000000001
+	fromCardinality: many
+	fromColumn: AccountKey
+	fromTable: FactBudget
+	toCardinality: one
+	toColumn: AccountKey
+	toTable: DimAccount
+	isActive: false
+
+relationship fr-rel-007-0000-0000-0000-000000000001
+	fromCardinality: many
+	fromColumn: DepartmentKey
+	fromTable: FactBudget
+	toCardinality: one
+	toColumn: DepartmentKey
+	toTable: DimDepartment
+	isActive: false
+
+relationship fr-rel-008-0000-0000-0000-000000000001
+	fromCardinality: many
+	fromColumn: EntityKey
+	fromTable: FactBudget
+	toCardinality: one
+	toColumn: EntityKey
+	toTable: DimEntity
+	isActive: false

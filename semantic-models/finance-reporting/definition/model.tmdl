@@ -1,0 +1,6 @@
+model Model
+	culture: en-US
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	description: Finance Reporting semantic model for the Power BI Enterprise PoC. Implements a financial star schema with actuals vs budget variance analysis, income statement metrics, and fiscal calendar alignment. Designed for CFO dashboards and departmental budget reviews.
+
+	annotation PBI_QueryOrder = ["DimPeriod","DimAccount","DimDepartment","DimEntity","FactActuals","FactBudget","_FinanceMeasures"]

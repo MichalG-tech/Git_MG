@@ -1,0 +1,106 @@
+table FactReturns
+	lineageTag: fr000006-0000-0000-0000-000000000001
+	description: Returns fact table containing one row per return transaction. Includes CustomerID, ProductID, and RegionID as direct foreign keys so return metrics can be sliced by any dimension without requiring a bridge through FactSales. Approximately 5% of FactSales volume.
+
+	column ReturnID
+		dataType: string
+		lineageTag: fr000006-0001-0000-0000-000000000001
+		sourceColumn: ReturnID
+		summarizeBy: none
+		description: Natural string key for the return transaction (format RET0000001). Used in DISTINCTCOUNT([ReturnID]) for Return Count measures.
+
+	column SalesID
+		dataType: string
+		isHidden
+		lineageTag: fr000006-0002-0000-0000-000000000001
+		sourceColumn: SalesID
+		summarizeBy: none
+		description: Reference to the original FactSales[SalesID] transaction that was returned. Not a formal relationship key — used for row-level traceability only.
+
+	column DateID
+		dataType: int64
+		isHidden
+		lineageTag: fr000006-0003-0000-0000-000000000001
+		sourceColumn: DateID
+		summarizeBy: none
+		description: Foreign key to DimDate[DateID] for the return date. Enables time intelligence on return trends.
+
+		annotation SummarizationSetBy = Automatic
+
+	column CustomerID
+		dataType: string
+		isHidden
+		lineageTag: fr000006-0004-0000-0000-000000000001
+		sourceColumn: CustomerID
+		summarizeBy: none
+		description: Foreign key to DimCustomer[CustomerID]. Enables return analysis by customer segment, industry, and region without needing to join through FactSales.
+
+	column ProductID
+		dataType: string
+		isHidden
+		lineageTag: fr000006-0005-0000-0000-000000000001
+		sourceColumn: ProductID
+		summarizeBy: none
+		description: Foreign key to DimProduct[ProductID]. Enables return rate analysis by product category, brand, and subcategory.
+
+	column RegionID
+		dataType: int64
+		isHidden
+		lineageTag: fr000006-0006-0000-0000-000000000001
+		sourceColumn: RegionID
+		summarizeBy: none
+		description: Foreign key to DimRegion[RegionID]. Enables geographic return analysis.
+
+		annotation SummarizationSetBy = Automatic
+
+	column Quantity
+		dataType: int64
+		lineageTag: fr000006-0007-0000-0000-000000000001
+		sourceColumn: Quantity
+		summarizeBy: sum
+		description: Number of units returned in this transaction. Always ≤ the quantity in the original sale.
+
+		annotation SummarizationSetBy = Automatic
+
+	column RefundAmount
+		dataType: decimal
+		lineageTag: fr000006-0008-0000-0000-000000000001
+		sourceColumn: RefundAmount
+		summarizeBy: sum
+		formatString: $ #,##0.00
+		description: Total monetary refund issued for this return, calculated as a prorated share of the original TotalAmount. Used in the Return Amount and Net Sales measures.
+
+		annotation SummarizationSetBy = Automatic
+		annotation PBI_FormatHint = {"currencySymbol":"$"}
+
+	column ReturnReason
+		dataType: string
+		lineageTag: fr000006-0009-0000-0000-000000000001
+		sourceColumn: ReturnReason
+		summarizeBy: none
+		description: Reason category for the return (Defective, Wrong Item, Not as Described, Changed Mind, Duplicate Order). Use as a slicer or legend in return reason analysis.
+
+	partition FactReturns-Partition = m
+		mode: import
+		source =
+				let
+				    Source  = Csv.Document(
+				        File.Contents(DataFolderPath & "returns.csv"),
+				        [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.None]
+				    ),
+				    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				    Typed   = Table.TransformColumnTypes(Headers, {
+				        {"ReturnID",     type text},
+				        {"SalesID",      type text},
+				        {"DateID",       Int64.Type},
+				        {"CustomerID",   type text},
+				        {"ProductID",    type text},
+				        {"RegionID",     Int64.Type},
+				        {"Quantity",     Int64.Type},
+				        {"RefundAmount", type number},
+				        {"ReturnReason", type text}
+				    })
+				in
+				    Typed
+
+	annotation PBI_ResultType = Table

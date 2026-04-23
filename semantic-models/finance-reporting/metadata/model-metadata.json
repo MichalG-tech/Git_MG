@@ -1,0 +1,84 @@
+{
+  "model": {
+    "name": "Finance Reporting",
+    "version": "1.0.0",
+    "description": "Finance Reporting semantic model for the Power BI Enterprise PoC. Implements actuals vs budget variance analysis with P&L measures, fiscal calendar support, and multi-entity structure.",
+    "owner": "Michal Glanowski",
+    "created": "2026-04-23",
+    "last_updated": "2026-04-23"
+  },
+  "schema": {
+    "fact_tables": [
+      {
+        "name": "FactActuals",
+        "source": "Simulated M query (replace with ERP connection in production)",
+        "row_count_approx": 5000,
+        "grain": "One row per general ledger journal entry line"
+      },
+      {
+        "name": "FactBudget",
+        "source": "Simulated M query (replace with planning system connection in production)",
+        "row_count_approx": 3000,
+        "grain": "One row per account-department-period-entity budget allocation"
+      }
+    ],
+    "dimension_tables": [
+      {
+        "name": "DimPeriod",
+        "source": "Generated via M query (April fiscal year, 2021-2026)",
+        "row_count_approx": 64,
+        "mark_as_date_table": true,
+        "date_column": "PeriodEndDate"
+      },
+      {
+        "name": "DimAccount",
+        "source": "Hardcoded chart of accounts (12 accounts)",
+        "row_count_approx": 12
+      },
+      {
+        "name": "DimDepartment",
+        "source": "Hardcoded department list (12 departments)",
+        "row_count_approx": 12
+      },
+      {
+        "name": "DimEntity",
+        "source": "Hardcoded entity list (5 entities)",
+        "row_count_approx": 5
+      }
+    ],
+    "utility_tables": [
+      {
+        "name": "_FinanceMeasures",
+        "description": "Hidden utility table containing all 20 DAX finance measures",
+        "measure_count": 20,
+        "measure_groups": [
+          "Actuals & Budget Base Measures (4)",
+          "Year-to-Date Measures (4)",
+          "Prior Year Comparison (3)",
+          "Income Statement Measures (9)"
+        ]
+      }
+    ]
+  },
+  "relationships": {
+    "count": 8,
+    "active": 4,
+    "inactive": 4,
+    "note": "FactBudget relationships are inactive. The Budget measure uses CALCULATE with USERELATIONSHIP implicitly via the _FinanceMeasures DAX patterns."
+  },
+  "security": {
+    "roles": [
+      {
+        "name": "Finance Viewer",
+        "type": "Read-only, no RLS",
+        "rls": false
+      }
+    ]
+  },
+  "production_readiness": {
+    "replace_fact_actuals_source": "Connect to ERP system (SAP, Oracle, Dynamics) via certified connector",
+    "replace_fact_budget_source": "Connect to planning tool (Anaplan, Workday Adaptive, Excel) or data warehouse",
+    "add_fx_conversion": "Add a FactFXRates table and FX conversion measures for multi-currency consolidation",
+    "add_entity_rls": "Implement USERPRINCIPALNAME()-based RLS on DimEntity for controlled entity visibility"
+  }
+}

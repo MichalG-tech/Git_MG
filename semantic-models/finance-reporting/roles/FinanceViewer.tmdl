@@ -1,0 +1,3 @@
+role 'Finance Viewer'
+	modelPermission: read
+	description: Read-only access to the Finance Reporting model for finance team members and business stakeholders. No row-level restrictions — all entities, departments, accounts, and periods are visible. For entity-restricted access, create an Entity Analyst role with a DimEntity[IsConsolidated] = TRUE filter or an entity-specific filter using USERPRINCIPALNAME() and a user-entity mapping table.

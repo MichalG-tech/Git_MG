@@ -1,0 +1,113 @@
+table DimAccount
+	lineageTag: ac000001-0000-0000-0000-000000000001
+	description: Chart of accounts dimension defining the financial reporting hierarchy. AccountType classifies each account for income statement (Revenue, Expense) or balance sheet (Asset, Liability, Equity) analysis. NormalBalance (Debit/Credit) drives the sign convention in financial statement measures.
+
+	column AccountKey
+		dataType: int64
+		isHidden
+		lineageTag: ac000001-0001-0000-0000-000000000001
+		sourceColumn: AccountKey
+		summarizeBy: none
+		description: Integer surrogate key for the account. Used as the relationship key between FactActuals/FactBudget and this dimension.
+
+		annotation SummarizationSetBy = Automatic
+
+	column AccountCode
+		dataType: string
+		lineageTag: ac000001-0002-0000-0000-000000000001
+		sourceColumn: AccountCode
+		summarizeBy: none
+		description: Natural account code from the chart of accounts (e.g. 4000 for Revenue, 5000 for COGS). Unique identifier for each account within the ERP system.
+
+	column AccountName
+		dataType: string
+		lineageTag: ac000001-0003-0000-0000-000000000001
+		sourceColumn: AccountName
+		summarizeBy: none
+		description: Descriptive name of the account as it appears in financial statements (e.g. Gross Revenue, Cost of Goods Sold, Salaries & Wages).
+
+	column AccountType
+		dataType: string
+		lineageTag: ac000001-0004-0000-0000-000000000001
+		sourceColumn: AccountType
+		summarizeBy: none
+		description: Top-level financial statement classification (Revenue, Expense, Asset, Liability, Equity). Used to filter specific account types in financial statement measures.
+
+	column AccountClass
+		dataType: string
+		lineageTag: ac000001-0005-0000-0000-000000000001
+		sourceColumn: AccountClass
+		summarizeBy: none
+		description: Sub-classification within AccountType (e.g. Cost of Goods Sold, Operating Expense, Capital Expenditure). Enables detailed P&L line-item analysis.
+
+	column AccountSubclass
+		dataType: string
+		lineageTag: ac000001-0006-0000-0000-000000000001
+		sourceColumn: AccountSubclass
+		summarizeBy: none
+		description: Further granularity within AccountClass for detailed drill-down reporting (e.g. IT Costs, HR Costs within Operating Expense).
+
+	column IsIncomeStatement
+		dataType: boolean
+		lineageTag: ac000001-0007-0000-0000-000000000001
+		sourceColumn: IsIncomeStatement
+		summarizeBy: none
+		description: True if this account appears on the income statement (P&L). Used to filter operating performance measures from balance sheet accounts.
+
+	column IsBalanceSheet
+		dataType: boolean
+		lineageTag: ac000001-0008-0000-0000-000000000001
+		sourceColumn: IsBalanceSheet
+		summarizeBy: none
+		description: True if this account appears on the balance sheet. Mutually exclusive with IsIncomeStatement for standard accounts.
+
+	column NormalBalance
+		dataType: string
+		lineageTag: ac000001-0009-0000-0000-000000000001
+		sourceColumn: NormalBalance
+		summarizeBy: none
+		description: Sign convention for the account (Debit or Credit). Revenue and liability accounts carry a Credit normal balance; expense and asset accounts carry a Debit normal balance. Used to apply correct sign in financial statement presentation.
+
+	column ParentAccountCode
+		dataType: string
+		lineageTag: ac000001-0010-0000-0000-000000000001
+		sourceColumn: ParentAccountCode
+		summarizeBy: none
+		description: Account code of the parent in the account hierarchy. Enables rollup analysis and subtotal calculations across account groups.
+
+	partition DimAccount-Partition = m
+		mode: import
+		source =
+				let
+				    Source = #table(
+				        type table [
+				            AccountKey = Int64.Type,
+				            AccountCode = type text,
+				            AccountName = type text,
+				            AccountType = type text,
+				            AccountClass = type text,
+				            AccountSubclass = type text,
+				            IsIncomeStatement = type logical,
+				            IsBalanceSheet = type logical,
+				            NormalBalance = type text,
+				            ParentAccountCode = type text
+				        ],
+				        {
+				            {1,  "4000", "Gross Revenue",          "Revenue", "Product Revenue",    "Direct Sales",       true,  false, "Credit", null},
+				            {2,  "4100", "Service Revenue",        "Revenue", "Service Revenue",    "Consulting",         true,  false, "Credit", null},
+				            {3,  "4200", "Other Revenue",          "Revenue", "Other Revenue",      "Misc",               true,  false, "Credit", null},
+				            {4,  "5000", "Cost of Goods Sold",     "Expense", "Cost of Goods Sold", "Direct Cost",        true,  false, "Debit",  null},
+				            {5,  "6000", "Salaries & Wages",       "Expense", "Operating Expense",  "Personnel",          true,  false, "Debit",  null},
+				            {6,  "6100", "Marketing & Advertising","Expense", "Operating Expense",  "Marketing",          true,  false, "Debit",  null},
+				            {7,  "6200", "IT & Technology",        "Expense", "Operating Expense",  "Technology",         true,  false, "Debit",  null},
+				            {8,  "6300", "Facilities & Rent",      "Expense", "Operating Expense",  "Facilities",         true,  false, "Debit",  null},
+				            {9,  "6400", "Professional Services",  "Expense", "Operating Expense",  "External Services",  true,  false, "Debit",  null},
+				            {10, "7000", "Depreciation",           "Expense", "Non-Cash",           "Depreciation",       true,  false, "Debit",  null},
+				            {11, "8000", "Interest Expense",       "Expense", "Financing",          "Interest",           true,  false, "Debit",  null},
+				            {12, "9000", "Income Tax",             "Expense", "Tax",                "Corporate Tax",      true,  false, "Debit",  null}
+				        }
+				    )
+				in
+				    Source
+
+	annotation PBI_ResultType = Table

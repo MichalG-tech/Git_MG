@@ -1,0 +1,121 @@
+/// Sales Analytics — Relationship Definitions
+///
+/// Star schema relationships:
+///   FactSales → DimDate     (DateID)        — sales date
+///   FactSales → DimCustomer (CustomerID)    — purchasing customer
+///   FactSales → DimProduct  (ProductID)     — purchased product
+///   FactSales → DimRegion   (RegionID)      — sale region
+///   FactReturns → DimDate   (DateID)        — return date
+///   FactReturns → DimCustomer (CustomerID) — returning customer
+///   FactReturns → DimProduct (ProductID)   — returned product
+///   FactReturns → DimRegion (RegionID)     — return region
+///   FactInventory → DimDate (DateID)       — snapshot date
+///   FactInventory → DimProduct (ProductID) — stocked product
+///   FactInventory → DimRegion (RegionID)   — stocking region
+///   DimCustomer → DimRegion (RegionID)     — customer home region
+///
+/// All fact-to-dimension relationships are many-to-one (many transactions, one dimension row).
+/// Cross-filter direction is single (dimension → fact) to prevent ambiguity in complex models.
+
+relationship fa-rel-001-0000-0000-0000-000000000001
+	fromCardinality: many
+	fromColumn: DateID
+	fromTable: FactSales
+	toCardinality: one
+	toColumn: DateID
+	toTable: DimDate
+
+relationship fa-rel-002-0000-0000-0000-000000000001
+	fromCardinality: many
+	fromColumn: CustomerID
+	fromTable: FactSales
+	toCardinality: one
+	toColumn: CustomerID
+	toTable: DimCustomer
+
+relationship fa-rel-003-0000-0000-0000-000000000001
+	fromCardinality: many
+	fromColumn: ProductID
+	fromTable: FactSales
+	toCardinality: one
+	toColumn: ProductID
+	toTable: DimProduct
+
+relationship fa-rel-004-0000-0000-0000-000000000001
+	fromCardinality: many
+	fromColumn: RegionID
+	fromTable: FactSales
+	toCardinality: one
+	toColumn: RegionID
+	toTable: DimRegion
+
+relationship fa-rel-005-0000-0000-0000-000000000001
+	fromCardinality: many
+	fromColumn: DateID
+	fromTable: FactReturns
+	toCardinality: one
+	toColumn: DateID
+	toTable: DimDate
+	isActive: false
+
+relationship fa-rel-006-0000-0000-0000-000000000001
+	fromCardinality: many
+	fromColumn: CustomerID
+	fromTable: FactReturns
+	toCardinality: one
+	toColumn: CustomerID
+	toTable: DimCustomer
+	isActive: false
+
+relationship fa-rel-007-0000-0000-0000-000000000001
+	fromCardinality: many
+	fromColumn: ProductID
+	fromTable: FactReturns
+	toCardinality: one
+	toColumn: ProductID
+	toTable: DimProduct
+	isActive: false
+
+relationship fa-rel-008-0000-0000-0000-000000000001
+	fromCardinality: many
+	fromColumn: RegionID
+	fromTable: FactReturns
+	toCardinality: one
+	toColumn: RegionID
+	toTable: DimRegion
+	isActive: false
+
+relationship fa-rel-009-0000-0000-0000-000000000001
+	fromCardinality: many
+	fromColumn: DateID
+	fromTable: FactInventory
+	toCardinality: one
+	toColumn: DateID
+	toTable: DimDate
+	isActive: false
+
+relationship fa-rel-010-0000-0000-0000-000000000001
+	fromCardinality: many
+	fromColumn: ProductID
+	fromTable: FactInventory
+	toCardinality: one
+	toColumn: ProductID
+	toTable: DimProduct
+	isActive: false
+
+relationship fa-rel-011-0000-0000-0000-000000000001
+	fromCardinality: many
+	fromColumn: RegionID
+	fromTable: FactInventory
+	toCardinality: one
+	toColumn: RegionID
+	toTable: DimRegion
+	isActive: false
+
+relationship fa-rel-012-0000-0000-0000-000000000001
+	fromCardinality: many
+	fromColumn: RegionID
+	fromTable: DimCustomer
+	toCardinality: one
+	toColumn: RegionID
+	toTable: DimRegion

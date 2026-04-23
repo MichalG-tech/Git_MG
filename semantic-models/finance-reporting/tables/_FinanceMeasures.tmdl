@@ -1,0 +1,173 @@
+table _FinanceMeasures
+	isHidden
+	lineageTag: fm000007-0000-0000-0000-000000000001
+	description: Central measures table for the Finance Reporting model. Contains all 20 DAX measures covering actuals, budget, variance, income statement line items, and profitability ratios. This hidden utility table holds no data rows.
+
+	/// ================================================================
+	/// GROUP 1 — ACTUALS & BUDGET BASE MEASURES (4)
+	/// Foundation measures used by all variance and ratio measures
+	/// ================================================================
+
+	measure Actuals = SUM(FactActuals[Amount])
+		formatString: #,##0
+		lineageTag: fm000007-0101-0000-0000-000000000001
+		description: Total posted actuals amount for the selected account-department-period-entity filter context. This is the foundation measure; all income statement and variance measures derive from it.
+
+	measure Budget =
+			CALCULATE(
+			    SUM(FactBudget[BudgetAmount]),
+			    FactBudget[BudgetVersion] = "Original Budget"
+			)
+		formatString: #,##0
+		lineageTag: fm000007-0102-0000-0000-000000000001
+		description: Budget amount filtered to the Original Budget version. To analyse a different version, use CALCULATE([Budget], FactBudget[BudgetVersion] = "Revised Budget") in a custom measure or report-level filter.
+
+	measure Variance = [Actuals] - [Budget]
+		formatString: +#,##0;-#,##0;0
+		lineageTag: fm000007-0103-0000-0000-000000000001
+		description: Actuals minus Budget. Positive values indicate favourable variance for revenue accounts (actuals exceeded budget) and unfavourable variance for expense accounts. Apply sign logic in visuals based on account type.
+
+	measure 'Variance %' = DIVIDE([Variance], [Budget])
+		formatString: +0.0%;-0.0%;0.0%
+		lineageTag: fm000007-0104-0000-0000-000000000001
+		description: Variance as a percentage of Budget. Use conditional formatting thresholds (e.g. green above +5%, red below -5%) to highlight significant budget deviations on KPI cards.
+
+	/// ================================================================
+	/// GROUP 2 — YEAR-TO-DATE MEASURES (4)
+	/// Cumulative period performance vs YTD budget
+	/// ================================================================
+
+	measure 'YTD Actuals' =
+			CALCULATE(
+			    [Actuals],
+			    DATESYTD(DimPeriod[PeriodEndDate])
+			)
+		formatString: #,##0
+		lineageTag: fm000007-0201-0000-0000-000000000001
+		description: Year-to-date actuals cumulative from the first period of the calendar year. Requires DimPeriod to be marked as a date table with PeriodEndDate as the date column.
+
+	measure 'YTD Budget' =
+			CALCULATE(
+			    [Budget],
+			    DATESYTD(DimPeriod[PeriodEndDate])
+			)
+		formatString: #,##0
+		lineageTag: fm000007-0202-0000-0000-000000000001
+		description: Year-to-date budget cumulative from the first period of the calendar year.
+
+	measure 'YTD Variance' = [YTD Actuals] - [YTD Budget]
+		formatString: +#,##0;-#,##0;0
+		lineageTag: fm000007-0203-0000-0000-000000000001
+		description: Year-to-date actuals minus YTD budget. The primary measure for mid-year performance reviews and board reporting.
+
+	measure 'YTD Variance %' = DIVIDE([YTD Variance], [YTD Budget])
+		formatString: +0.0%;-0.0%;0.0%
+		lineageTag: fm000007-0204-0000-0000-000000000001
+		description: YTD variance as a percentage of YTD budget. Use to quickly communicate whether the business is tracking ahead or behind plan at a given point in the year.
+
+	/// ================================================================
+	/// GROUP 3 — PRIOR YEAR COMPARISON (3)
+	/// Year-on-year trends for actuals
+	/// ================================================================
+
+	measure 'Prior Year Actuals' =
+			CALCULATE(
+			    [Actuals],
+			    DATEADD(DimPeriod[PeriodEndDate], -1, YEAR)
+			)
+		formatString: #,##0
+		lineageTag: fm000007-0301-0000-0000-000000000001
+		description: Actuals for the equivalent period in the prior year. Used as the benchmark in YoY Change and YoY Change % measures.
+
+	measure 'YoY Change' = [Actuals] - [Prior Year Actuals]
+		formatString: +#,##0;-#,##0;0
+		lineageTag: fm000007-0302-0000-0000-000000000001
+		description: Absolute change in actuals versus the prior year equivalent period. Positive values indicate growth; negative values indicate decline.
+
+	measure 'YoY Change %' = DIVIDE([YoY Change], [Prior Year Actuals])
+		formatString: +0.0%;-0.0%;0.0%
+		lineageTag: fm000007-0303-0000-0000-000000000001
+		description: Year-over-year change in actuals as a percentage. Use on executive dashboards to communicate year-on-year business trajectory.
+
+	/// ================================================================
+	/// GROUP 4 — INCOME STATEMENT MEASURES (9)
+	/// P&L line items: revenue, COGS, gross profit, EBITDA, net income
+	/// ================================================================
+
+	measure Revenue =
+			CALCULATE(
+			    [Actuals],
+			    DimAccount[AccountType] = "Revenue"
+			)
+		formatString: #,##0
+		lineageTag: fm000007-0401-0000-0000-000000000001
+		description: Total revenue from all Revenue-type accounts. The top line of the income statement. Includes both product revenue and service revenue.
+
+	measure 'Cost of Goods Sold' =
+			CALCULATE(
+			    [Actuals],
+			    DimAccount[AccountClass] = "Cost of Goods Sold"
+			)
+		formatString: #,##0
+		lineageTag: fm000007-0402-0000-0000-000000000001
+		description: Direct costs attributable to producing goods or services sold. Filtered to accounts with AccountClass = Cost of Goods Sold. Deducted from Revenue to calculate Gross Profit.
+
+	measure 'Gross Profit (Finance)' = [Revenue] - [Cost of Goods Sold]
+		formatString: #,##0
+		lineageTag: fm000007-0403-0000-0000-000000000001
+		description: Revenue minus Cost of Goods Sold. The primary profitability metric before operating expenses. Named with (Finance) suffix to distinguish from the Sales Analytics model's Gross Profit measure.
+
+	measure 'Gross Margin % (Finance)' =
+			DIVIDE([Gross Profit (Finance)], [Revenue])
+		formatString: 0.0%
+		lineageTag: fm000007-0404-0000-0000-000000000001
+		description: Gross Profit as a percentage of Revenue. Tracks production efficiency and pricing power. Named with (Finance) suffix to avoid ambiguity.
+
+	measure 'Operating Expenses' =
+			CALCULATE(
+			    [Actuals],
+			    DimAccount[AccountType] = "Expense",
+			    DimAccount[AccountClass] = "Operating Expense"
+			)
+		formatString: #,##0
+		lineageTag: fm000007-0405-0000-0000-000000000001
+		description: Total operating expenses (Salaries, Marketing, IT, Facilities, Professional Services). Excludes COGS, depreciation, interest, and tax — use specific measures for below-the-line items.
+
+	measure EBITDA =
+			[Gross Profit (Finance)] - [Operating Expenses]
+		formatString: #,##0
+		lineageTag: fm000007-0406-0000-0000-000000000001
+		description: Earnings Before Interest, Taxes, Depreciation, and Amortisation. Calculated as Gross Profit minus Operating Expenses. A widely used proxy for operating cash flow in corporate finance analysis.
+
+	measure 'EBITDA Margin %' =
+			DIVIDE([EBITDA], [Revenue])
+		formatString: 0.0%
+		lineageTag: fm000007-0407-0000-0000-000000000001
+		description: EBITDA as a percentage of Revenue. Industry benchmark varies; values above 15% are generally considered healthy for technology and services businesses.
+
+	measure 'Net Income' =
+			[Revenue]
+			    - CALCULATE(
+			        [Actuals],
+			        DimAccount[IsIncomeStatement] = TRUE,
+			        DimAccount[AccountType] = "Expense"
+			    )
+		formatString: #,##0
+		lineageTag: fm000007-0408-0000-0000-000000000001
+		description: Bottom-line net income (Revenue minus all income statement expenses including COGS, operating expenses, depreciation, interest, and tax). The final profit figure reported to shareholders.
+
+	measure 'Net Margin %' =
+			DIVIDE([Net Income], [Revenue])
+		formatString: 0.0%
+		lineageTag: fm000007-0409-0000-0000-000000000001
+		description: Net Income as a percentage of Revenue. The definitive profitability ratio; values below 0% indicate a loss-making period.
+
+	partition _FinanceMeasures-Partition = m
+		mode: import
+		source =
+				let
+				    Source = #table(type table [], {})
+				in
+				    Source
+
+	annotation PBI_ResultType = Table

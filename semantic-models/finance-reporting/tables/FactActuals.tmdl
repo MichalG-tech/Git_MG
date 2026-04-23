@@ -1,0 +1,111 @@
+table FactActuals
+	lineageTag: fa000005-0000-0000-0000-000000000001
+	description: Financial actuals fact table containing one row per general ledger journal entry line. Each row represents a posted transaction amount allocated to an account, department, period, and entity. All amounts are stored in local currency; apply FX conversion for multi-currency consolidated reporting.
+
+	column EntryID
+		dataType: int64
+		isHidden
+		lineageTag: fa000005-0001-0000-0000-000000000001
+		sourceColumn: EntryID
+		summarizeBy: none
+		description: Surrogate integer key for the journal entry line.
+
+		annotation SummarizationSetBy = Automatic
+
+	column AccountKey
+		dataType: int64
+		isHidden
+		lineageTag: fa000005-0002-0000-0000-000000000001
+		sourceColumn: AccountKey
+		summarizeBy: none
+		description: Foreign key to DimAccount[AccountKey]. Drives account-level filtering in financial statement measures.
+
+		annotation SummarizationSetBy = Automatic
+
+	column DepartmentKey
+		dataType: int64
+		isHidden
+		lineageTag: fa000005-0003-0000-0000-000000000001
+		sourceColumn: DepartmentKey
+		summarizeBy: none
+		description: Foreign key to DimDepartment[DepartmentKey]. Enables departmental cost analysis and budget attribution.
+
+		annotation SummarizationSetBy = Automatic
+
+	column PeriodKey
+		dataType: int64
+		isHidden
+		lineageTag: fa000005-0004-0000-0000-000000000001
+		sourceColumn: PeriodKey
+		summarizeBy: none
+		description: Foreign key to DimPeriod[PeriodKey]. Used for period-based aggregations and time intelligence.
+
+		annotation SummarizationSetBy = Automatic
+
+	column EntityKey
+		dataType: int64
+		isHidden
+		lineageTag: fa000005-0005-0000-0000-000000000001
+		sourceColumn: EntityKey
+		summarizeBy: none
+		description: Foreign key to DimEntity[EntityKey]. Enables entity-level and consolidated financial reporting.
+
+		annotation SummarizationSetBy = Automatic
+
+	column Amount
+		dataType: decimal
+		lineageTag: fa000005-0006-0000-0000-000000000001
+		sourceColumn: Amount
+		summarizeBy: sum
+		formatString: #,##0.00
+		description: Posted amount in local currency. Revenue amounts are positive; expense amounts are positive (sign is handled by NormalBalance in DimAccount and measure logic). Do not sum this column directly — use the Actuals measure which applies correct sign conventions.
+
+		annotation SummarizationSetBy = Automatic
+
+	column JournalReference
+		dataType: string
+		lineageTag: fa000005-0007-0000-0000-000000000001
+		sourceColumn: JournalReference
+		summarizeBy: none
+		description: Reference number linking this entry to the originating journal batch in the ERP system. Used for audit trail drill-through.
+
+	partition FactActuals-Partition = m
+		mode: import
+		source =
+				let
+				    // Simulated actuals data — replace with live ERP connection in production
+				    // In Power BI Desktop: Home → Transform data → Data source settings
+				    Periods     = {1..63},
+				    Accounts    = {1..12},
+				    Departments = {1..12},
+				    Entities    = {1..5},
+				    Seed = List.Generate(
+				        () => 1,
+				        each _ <= 5000,
+				        each _ + 1,
+				        each [
+				            EntryID        = _,
+				            AccountKey     = Number.Mod(_, 12) + 1,
+				            DepartmentKey  = Number.Mod(_ * 3, 12) + 1,
+				            PeriodKey      = Number.Mod(_, 63) + 1,
+				            EntityKey      = Number.Mod(_, 5) + 1,
+				            Amount         = Number.Round((_ * 1234.56) / (Number.Mod(_, 7) + 1), 2),
+				            JournalReference = "JRN-" & Text.PadStart(Text.From(_), 6, "0")
+				        ]
+				    ),
+				    Source = Table.FromRecords(
+				        Seed,
+				        type table [
+				            EntryID = Int64.Type,
+				            AccountKey = Int64.Type,
+				            DepartmentKey = Int64.Type,
+				            PeriodKey = Int64.Type,
+				            EntityKey = Int64.Type,
+				            Amount = type number,
+				            JournalReference = type text
+				        ]
+				    )
+				in
+				    Source
+
+	annotation PBI_ResultType = Table

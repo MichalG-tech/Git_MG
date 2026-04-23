@@ -1,0 +1,9 @@
+culture en-US
+	description: English (United States) culture definition for the Sales Analytics model. Provides localised captions and display names for reports targeting English-speaking audiences. Add additional culture files (e.g. de-DE, fr-FR) to support multilingual report deployments.
+
+	linguisticMetadata =
+			{
+			  "Version": "1.0.0",
+			  "Language": "en-US"
+			}
+		contentType: json

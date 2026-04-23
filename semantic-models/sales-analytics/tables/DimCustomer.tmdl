@@ -1,0 +1,97 @@
+table DimCustomer
+	lineageTag: cu000002-0000-0000-0000-000000000001
+	description: Customer master dimension containing demographic and segmentation attributes. Each customer is assigned to one region (RegionID), enabling geographic sales analysis without requiring a direct FactSales → DimRegion relationship.
+
+	column CustomerID
+		dataType: string
+		lineageTag: cu000002-0001-0000-0000-000000000001
+		sourceColumn: CustomerID
+		summarizeBy: none
+		description: Natural string key in format CUST000001. Used as the relationship key between FactSales and DimCustomer.
+
+	column CustomerName
+		dataType: string
+		lineageTag: cu000002-0002-0000-0000-000000000001
+		sourceColumn: CustomerName
+		summarizeBy: none
+		description: Display name of the customer. Used in customer-level analysis and drill-through reports.
+
+	column Country
+		dataType: string
+		lineageTag: cu000002-0003-0000-0000-000000000001
+		sourceColumn: Country
+		summarizeBy: none
+		description: Country where the customer is located. Supports geographic map visuals.
+
+	column City
+		dataType: string
+		lineageTag: cu000002-0004-0000-0000-000000000001
+		sourceColumn: City
+		summarizeBy: none
+		description: City of the customer. Supports city-level drill-down in geographic visuals.
+
+	column JoinDate
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: cu000002-0005-0000-0000-000000000001
+		sourceColumn: JoinDate
+		summarizeBy: none
+		description: Date the customer first joined or was acquired. Used to calculate customer tenure and new-customer cohort analysis.
+
+		annotation SummarizationSetBy = Automatic
+
+	column Segment
+		dataType: string
+		lineageTag: cu000002-0006-0000-0000-000000000001
+		sourceColumn: Segment
+		summarizeBy: none
+		description: Customer value segment (Premium, Standard, Budget). Primary slicing dimension for segment-level performance reports.
+
+	column Industry
+		dataType: string
+		lineageTag: cu000002-0007-0000-0000-000000000001
+		sourceColumn: Industry
+		summarizeBy: none
+		description: Industry vertical of the customer (Retail, Technology, Finance, Healthcare, Manufacturing, Other).
+
+	column AcquisitionChannel
+		dataType: string
+		lineageTag: cu000002-0008-0000-0000-000000000001
+		sourceColumn: AcquisitionChannel
+		summarizeBy: none
+		description: Channel through which the customer was acquired (Online, Direct Sales, Partner, Inbound). Used for marketing attribution analysis.
+
+	column RegionID
+		dataType: int64
+		isHidden
+		lineageTag: cu000002-0009-0000-0000-000000000001
+		sourceColumn: RegionID
+		summarizeBy: none
+		description: Foreign key linking this customer to DimRegion. Enables geographic analysis via the customer bridge (FactSales → DimCustomer → DimRegion).
+
+		annotation SummarizationSetBy = Automatic
+
+	partition DimCustomer-Partition = m
+		mode: import
+		source =
+				let
+				    Source  = Csv.Document(
+				        File.Contents(DataFolderPath & "customers.csv"),
+				        [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.None]
+				    ),
+				    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				    Typed   = Table.TransformColumnTypes(Headers, {
+				        {"CustomerID",         type text},
+				        {"CustomerName",       type text},
+				        {"Country",            type text},
+				        {"City",               type text},
+				        {"JoinDate",           type date},
+				        {"Segment",            type text},
+				        {"Industry",           type text},
+				        {"AcquisitionChannel", type text},
+				        {"RegionID",           Int64.Type}
+				    })
+				in
+				    Typed
+
+	annotation PBI_ResultType = Table

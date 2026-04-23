@@ -1,0 +1,108 @@
+table FactBudget
+	lineageTag: fb000006-0000-0000-0000-000000000001
+	description: Financial budget fact table containing one row per budget allocation per account, department, period, and entity. BudgetVersion enables scenario analysis (Original Budget, Revised Budget, Forecast) by keeping multiple budget iterations alongside actuals. This is the single source of truth for budget-vs-actual variance analysis.
+
+	column BudgetID
+		dataType: int64
+		isHidden
+		lineageTag: fb000006-0001-0000-0000-000000000001
+		sourceColumn: BudgetID
+		summarizeBy: none
+		description: Surrogate integer key for the budget allocation row.
+
+		annotation SummarizationSetBy = Automatic
+
+	column AccountKey
+		dataType: int64
+		isHidden
+		lineageTag: fb000006-0002-0000-0000-000000000001
+		sourceColumn: AccountKey
+		summarizeBy: none
+		description: Foreign key to DimAccount[AccountKey]. Drives account-level budget filtering in variance measures.
+
+		annotation SummarizationSetBy = Automatic
+
+	column DepartmentKey
+		dataType: int64
+		isHidden
+		lineageTag: fb000006-0003-0000-0000-000000000001
+		sourceColumn: DepartmentKey
+		summarizeBy: none
+		description: Foreign key to DimDepartment[DepartmentKey]. Enables departmental budget allocation tracking.
+
+		annotation SummarizationSetBy = Automatic
+
+	column PeriodKey
+		dataType: int64
+		isHidden
+		lineageTag: fb000006-0004-0000-0000-000000000001
+		sourceColumn: PeriodKey
+		summarizeBy: none
+		description: Foreign key to DimPeriod[PeriodKey]. Budget figures are period-aligned (monthly) to support period-level variance analysis.
+
+		annotation SummarizationSetBy = Automatic
+
+	column EntityKey
+		dataType: int64
+		isHidden
+		lineageTag: fb000006-0005-0000-0000-000000000001
+		sourceColumn: EntityKey
+		summarizeBy: none
+		description: Foreign key to DimEntity[EntityKey]. Enables entity-level budget reporting.
+
+		annotation SummarizationSetBy = Automatic
+
+	column BudgetAmount
+		dataType: decimal
+		lineageTag: fb000006-0006-0000-0000-000000000001
+		sourceColumn: BudgetAmount
+		summarizeBy: sum
+		formatString: #,##0.00
+		description: Budgeted amount in local currency for this account-department-period-entity combination. Use the Budget measure (not this column directly) to ensure correct version filtering and sign conventions.
+
+		annotation SummarizationSetBy = Automatic
+
+	column BudgetVersion
+		dataType: string
+		lineageTag: fb000006-0007-0000-0000-000000000001
+		sourceColumn: BudgetVersion
+		summarizeBy: none
+		description: Budget iteration label (Original Budget, Revised Budget, Latest Forecast). Always filter to a specific version for meaningful variance analysis — combining multiple versions produces inflated totals.
+
+	partition FactBudget-Partition = m
+		mode: import
+		source =
+				let
+				    // Simulated budget data — replace with live planning system connection in production
+				    Seed = List.Generate(
+				        () => 1,
+				        each _ <= 3000,
+				        each _ + 1,
+				        each [
+				            BudgetID      = _,
+				            AccountKey    = Number.Mod(_, 12) + 1,
+				            DepartmentKey = Number.Mod(_ * 2, 12) + 1,
+				            PeriodKey     = Number.Mod(_, 63) + 1,
+				            EntityKey     = Number.Mod(_, 5) + 1,
+				            BudgetAmount  = Number.Round((_ * 1500.00) / (Number.Mod(_, 5) + 1), 2),
+				            BudgetVersion = if Number.Mod(_, 3) = 0 then "Original Budget"
+				                            else if Number.Mod(_, 3) = 1 then "Revised Budget"
+				                            else "Latest Forecast"
+				        ]
+				    ),
+				    Source = Table.FromRecords(
+				        Seed,
+				        type table [
+				            BudgetID = Int64.Type,
+				            AccountKey = Int64.Type,
+				            DepartmentKey = Int64.Type,
+				            PeriodKey = Int64.Type,
+				            EntityKey = Int64.Type,
+				            BudgetAmount = type number,
+				            BudgetVersion = type text
+				        ]
+				    )
+				in
+				    Source
+
+	annotation PBI_ResultType = Table

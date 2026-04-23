@@ -1,0 +1,81 @@
+table DimDepartment
+	lineageTag: dp000002-0000-0000-0000-000000000001
+	description: Department dimension representing the organisational cost centre hierarchy. Enables departmental budget vs actuals analysis and variance attribution. DivisionName provides the mid-level rollup between individual departments and the legal entity level.
+
+	column DepartmentKey
+		dataType: int64
+		isHidden
+		lineageTag: dp000002-0001-0000-0000-000000000001
+		sourceColumn: DepartmentKey
+		summarizeBy: none
+		description: Integer surrogate key for the department. Used as the relationship key between FactActuals/FactBudget and this dimension.
+
+		annotation SummarizationSetBy = Automatic
+
+	column DepartmentCode
+		dataType: string
+		lineageTag: dp000002-0002-0000-0000-000000000001
+		sourceColumn: DepartmentCode
+		summarizeBy: none
+		description: Short code identifying the department (e.g. SALES, MKTG, IT, OPS). Used in system integrations and as a compact label.
+
+	column DepartmentName
+		dataType: string
+		lineageTag: dp000002-0003-0000-0000-000000000001
+		sourceColumn: DepartmentName
+		summarizeBy: none
+		description: Full display name of the department (e.g. Sales & Business Development, Marketing, Information Technology).
+
+	column DivisionName
+		dataType: string
+		lineageTag: dp000002-0004-0000-0000-000000000001
+		sourceColumn: DivisionName
+		summarizeBy: none
+		description: Division that the department belongs to (e.g. Commercial, Operations, Technology, Corporate). Provides the organisational rollup level above department.
+
+	column CostCenter
+		dataType: string
+		lineageTag: dp000002-0005-0000-0000-000000000001
+		sourceColumn: CostCenter
+		summarizeBy: none
+		description: ERP cost centre code linked to this department. Used for reconciliation with source financial systems.
+
+	column IsActive
+		dataType: boolean
+		lineageTag: dp000002-0006-0000-0000-000000000001
+		sourceColumn: IsActive
+		summarizeBy: none
+		description: True if the department is currently active. Filter to IsActive = True to exclude dissolved departments from current period reporting.
+
+	partition DimDepartment-Partition = m
+		mode: import
+		source =
+				let
+				    Source = #table(
+				        type table [
+				            DepartmentKey = Int64.Type,
+				            DepartmentCode = type text,
+				            DepartmentName = type text,
+				            DivisionName = type text,
+				            CostCenter = type text,
+				            IsActive = type logical
+				        ],
+				        {
+				            {1, "SALES",  "Sales & Business Development", "Commercial",  "CC-1001", true},
+				            {2, "MKTG",   "Marketing",                    "Commercial",  "CC-1002", true},
+				            {3, "CUST",   "Customer Success",             "Commercial",  "CC-1003", true},
+				            {4, "IT",     "Information Technology",       "Technology",  "CC-2001", true},
+				            {5, "PROD",   "Product & Engineering",        "Technology",  "CC-2002", true},
+				            {6, "DATA",   "Data & Analytics",             "Technology",  "CC-2003", true},
+				            {7, "OPS",    "Operations",                   "Operations",  "CC-3001", true},
+				            {8, "LOGI",   "Logistics & Supply Chain",     "Operations",  "CC-3002", true},
+				            {9, "FIN",    "Finance",                      "Corporate",   "CC-4001", true},
+				            {10,"HR",     "Human Resources",              "Corporate",   "CC-4002", true},
+				            {11,"LEGAL",  "Legal & Compliance",           "Corporate",   "CC-4003", true},
+				            {12,"EXEC",   "Executive Office",             "Corporate",   "CC-4004", true}
+				        }
+				    )
+				in
+				    Source
+
+	annotation PBI_ResultType = Table

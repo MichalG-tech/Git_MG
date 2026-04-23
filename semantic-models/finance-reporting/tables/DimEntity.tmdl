@@ -1,0 +1,82 @@
+table DimEntity
+	lineageTag: en000004-0000-0000-0000-000000000001
+	description: Legal entity and business unit dimension. Supports multi-entity financial reporting including subsidiary consolidation, intercompany elimination, and currency translation. IsConsolidated flags entities included in group-level financial statements.
+
+	column EntityKey
+		dataType: int64
+		isHidden
+		lineageTag: en000004-0001-0000-0000-000000000001
+		sourceColumn: EntityKey
+		summarizeBy: none
+		description: Integer surrogate key for the entity. Used as the relationship key between FactActuals/FactBudget and this dimension.
+
+		annotation SummarizationSetBy = Automatic
+
+	column EntityCode
+		dataType: string
+		lineageTag: en000004-0002-0000-0000-000000000001
+		sourceColumn: EntityCode
+		summarizeBy: none
+		description: Short entity identifier (e.g. HQ, EU-SUB, APAC-BU). Used in system references and intercompany reconciliation.
+
+	column EntityName
+		dataType: string
+		lineageTag: en000004-0003-0000-0000-000000000001
+		sourceColumn: EntityName
+		summarizeBy: none
+		description: Full legal or business unit name (e.g. Headquarters, European Subsidiary, Asia-Pacific Business Unit).
+
+	column EntityType
+		dataType: string
+		lineageTag: en000004-0004-0000-0000-000000000001
+		sourceColumn: EntityType
+		summarizeBy: none
+		description: Entity classification (Headquarters, Subsidiary, Business Unit). Drives consolidation logic and reporting hierarchy.
+
+	column Country
+		dataType: string
+		lineageTag: en000004-0005-0000-0000-000000000001
+		sourceColumn: Country
+		summarizeBy: none
+		description: Country of incorporation for the entity. Used for geographic P&L segmentation and regulatory reporting.
+
+	column Currency
+		dataType: string
+		lineageTag: en000004-0006-0000-0000-000000000001
+		sourceColumn: Currency
+		summarizeBy: none
+		description: Functional currency code (e.g. USD, EUR, GBP). All amounts in FactActuals and FactBudget are stored in local currency; apply FX conversion measures for consolidated reporting.
+
+	column IsConsolidated
+		dataType: boolean
+		lineageTag: en000004-0007-0000-0000-000000000001
+		sourceColumn: IsConsolidated
+		summarizeBy: none
+		description: True if this entity is included in the consolidated group financial statements. Filter to True for group-level P&L; exclude intercompany entities for accurate revenue and expense figures.
+
+	partition DimEntity-Partition = m
+		mode: import
+		source =
+				let
+				    Source = #table(
+				        type table [
+				            EntityKey = Int64.Type,
+				            EntityCode = type text,
+				            EntityName = type text,
+				            EntityType = type text,
+				            Country = type text,
+				            Currency = type text,
+				            IsConsolidated = type logical
+				        ],
+				        {
+				            {1, "HQ",       "Headquarters",              "Headquarters", "USA",       "USD", true},
+				            {2, "EU-SUB",   "European Subsidiary",       "Subsidiary",   "Germany",   "EUR", true},
+				            {3, "UK-SUB",   "UK Subsidiary",             "Subsidiary",   "UK",        "GBP", true},
+				            {4, "APAC-BU",  "Asia-Pacific Business Unit","Business Unit","Australia", "AUD", true},
+				            {5, "LATAM-BU", "Latin America Business Unit","Business Unit","Mexico",   "MXN", false}
+				        }
+				    )
+				in
+				    Source
+
+	annotation PBI_ResultType = Table

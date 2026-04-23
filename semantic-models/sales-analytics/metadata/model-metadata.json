@@ -1,0 +1,107 @@
+{
+  "model": {
+    "name": "Sales Analytics",
+    "version": "1.0.0",
+    "description": "Enterprise sales analytics semantic model for the Power BI PoC. Implements a star schema with 500K+ transaction rows, 5 dimensions, and 63 DAX measures.",
+    "owner": "Michal Glanowski",
+    "created": "2026-04-23",
+    "last_updated": "2026-04-23"
+  },
+  "schema": {
+    "fact_tables": [
+      {
+        "name": "FactSales",
+        "source_file": "data/raw/orders.csv",
+        "row_count_approx": 500000,
+        "grain": "One row per sales transaction",
+        "primary_key": "SalesID"
+      },
+      {
+        "name": "FactReturns",
+        "source_file": "data/raw/returns.csv",
+        "row_count_approx": 25000,
+        "grain": "One row per return transaction",
+        "primary_key": "ReturnID"
+      },
+      {
+        "name": "FactInventory",
+        "source_file": "data/raw/inventory.csv",
+        "row_count_approx": 90000,
+        "grain": "One row per product per region per snapshot date",
+        "primary_key": "InventoryID"
+      }
+    ],
+    "dimension_tables": [
+      {
+        "name": "DimDate",
+        "source_file": "data/raw/date_dimension.csv",
+        "row_count_approx": 1938,
+        "date_range": "2021-01-01 to 2026-04-22",
+        "mark_as_date_table": true,
+        "date_column": "Date"
+      },
+      {
+        "name": "DimCustomer",
+        "source_file": "data/raw/customers.csv",
+        "row_count_approx": 5000
+      },
+      {
+        "name": "DimProduct",
+        "source_file": "data/raw/products.csv",
+        "row_count_approx": 1500
+      },
+      {
+        "name": "DimRegion",
+        "source_file": "data/raw/regions.csv",
+        "row_count_approx": 50
+      }
+    ],
+    "utility_tables": [
+      {
+        "name": "_Measures",
+        "description": "Hidden utility table containing all 63 DAX measures",
+        "measure_count": 63,
+        "measure_groups": [
+          "Sales Performance (12)",
+          "Time Intelligence: Period Totals (8)",
+          "Time Intelligence: Growth (7)",
+          "Returns Analytics (5)",
+          "Customer Analytics (10)",
+          "Product Analytics (8)",
+          "Inventory Analytics (5)",
+          "Geography (4)",
+          "Ranking & Intelligence (7)"
+        ]
+      }
+    ]
+  },
+  "relationships": {
+    "count": 12,
+    "active": 4,
+    "inactive": 8,
+    "note": "FactReturns and FactInventory relationships are inactive by default. Use USERELATIONSHIP() in DAX when calculating return or inventory metrics sliced by date or customer."
+  },
+  "security": {
+    "roles": [
+      {
+        "name": "Sales Manager",
+        "type": "Full access",
+        "rls": false
+      },
+      {
+        "name": "Regional Analyst",
+        "type": "Row-level security",
+        "rls": true,
+        "filter_table": "DimRegion",
+        "note": "Replace placeholder RLS filter with production user-mapping table before deploying"
+      }
+    ]
+  },
+  "setup_instructions": {
+    "step_1": "Update DataFolderPath parameter to your absolute data/raw/ path",
+    "step_2": "Open in Tabular Editor 3 or Power BI Desktop",
+    "step_3": "Mark DimDate as date table (Date column) for time intelligence",
+    "step_4": "Refresh data to load CSV files",
+    "step_5": "Validate using: py python-utilities/scripts/run-all-checks.py"
+  }
+}

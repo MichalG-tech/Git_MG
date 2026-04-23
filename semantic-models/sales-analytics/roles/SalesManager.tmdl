@@ -1,0 +1,6 @@
+role 'Sales Manager'
+	modelPermission: read
+	description: Grants read access to all data in the Sales Analytics model. Intended for sales managers who need full visibility across all regions and customers with no row-level restrictions. Assign via the Power BI service workspace role management.
+
+	/// No table-level filters applied — this role has full data visibility.
+	/// For region-restricted access, use the Regional Analyst role instead.

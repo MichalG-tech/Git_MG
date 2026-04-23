@@ -52,6 +52,9 @@ secrets/
 *.pem
 *.pub
 
+# Generated data files (large, reproducible — run generate-data.py locally)
+data/raw/*.csv
+
 # Tabular Editor backups
 *.backup
 
