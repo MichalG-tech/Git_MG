@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12",
+  "name": "Power BI Enterprise Design System",
+  "version": "1.0.0",
+  "description": "Canonical color tokens for all Power BI reports in this PoC. Reference these values when configuring theme JSON files, SVG backgrounds, and DAX conditional formatting.",
+
+  "brand": {
+    "navy":  { "hex": "#1A2B4A", "usage": "Headers, primary backgrounds, dark text on light surfaces" },
+    "steel": { "hex": "#2D4B7C", "usage": "Secondary headers, nav panels, hover states" },
+    "sky":   { "hex": "#4A90D9", "usage": "Accent elements, interactive highlights, links" },
+    "white": { "hex": "#FFFFFF", "usage": "Card backgrounds, inverse text" }
+  },
+
+  "visualization": {
+    "description": "Categorical series colors. Colorblind-safe (deuteranopia / protanopia). Use in this order for multi-series charts.",
+    "series": [
+      { "index": 1, "name": "Blue",   "hex": "#2E86AB", "usage": "Primary series — Total Sales, Actuals" },
+      { "index": 2, "name": "Teal",   "hex": "#1DB5BE", "usage": "Secondary series — Budget, Prior Year" },
+      { "index": 3, "name": "Orange", "hex": "#F76C2F", "usage": "Tertiary series — Returns, Variance" },
+      { "index": 4, "name": "Green",  "hex": "#27AE60", "usage": "Fourth series — Gross Profit, Positive" },
+      { "index": 5, "name": "Purple", "hex": "#7B5EA7", "usage": "Fifth series — Forecast" },
+      { "index": 6, "name": "Amber",  "hex": "#F4A825", "usage": "Sixth series — Targets, Thresholds" }
+    ]
+  },
+
+  "semantic": {
+    "positive":  { "hex": "#27AE60", "light": "#D5F0E1", "usage": "Positive growth, above target, good KPI" },
+    "negative":  { "hex": "#E53E3E", "light": "#FDE8E8", "usage": "Negative growth, below target, alert" },
+    "warning":   { "hex": "#F4A825", "light": "#FEF3CD", "usage": "At risk, approaching threshold, caution" },
+    "neutral":   { "hex": "#718096", "light": "#EDF2F7", "usage": "No change, informational, disabled" }
+  },
+
+  "background": {
+    "page":   { "hex": "#F7F9FC", "usage": "Report page canvas — very light blue-gray" },
+    "panel":  { "hex": "#EBF0F8", "usage": "Side navigation panels, filter panes" },
+    "card":   { "hex": "#FFFFFF", "usage": "KPI cards, table backgrounds" },
+    "header": { "hex": "#1A2B4A", "usage": "Report header bars — navy" },
+    "stripe": { "hex": "#F0F4FA", "usage": "Alternating table row background" }
+  },
+
+  "text": {
+    "primary":   { "hex": "#1A2B4A", "usage": "Main body text, titles on light backgrounds" },
+    "secondary": { "hex": "#4A5568", "usage": "Subtitles, labels, secondary information" },
+    "muted":     { "hex": "#718096", "usage": "Captions, axis labels, disabled text" },
+    "inverse":   { "hex": "#FFFFFF", "usage": "Text on dark/navy backgrounds" },
+    "link":      { "hex": "#4A90D9", "usage": "Hyperlinks, interactive elements" }
+  },
+
+  "border": {
+    "strong": { "hex": "#CBD5E0", "usage": "Card borders, dividers" },
+    "subtle": { "hex": "#E2E8F0", "usage": "Separator lines, grid lines" }
+  },
+
+  "powerbi_theme": {
+    "description": "Values formatted for use in a Power BI theme JSON file (File → Options → Report settings → Browse for themes).",
+    "dataColors": [
+      "#2E86AB",
+      "#1DB5BE",
+      "#F76C2F",
+      "#27AE60",
+      "#7B5EA7",
+      "#F4A825"
+    ],
+    "background":   "#F7F9FC",
+    "foreground":   "#1A2B4A",
+    "tableAccent":  "#4A90D9"
+  }
+}

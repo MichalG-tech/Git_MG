@@ -1,0 +1,87 @@
+{
+  "name": "Power BI Enterprise PoC Theme",
+  "dataColors": [
+    "#2E86AB",
+    "#1DB5BE",
+    "#F76C2F",
+    "#27AE60",
+    "#7B5EA7",
+    "#F4A825"
+  ],
+  "background": "#F7F9FC",
+  "foreground": "#1A2B4A",
+  "tableAccent": "#4A90D9",
+  "visualStyles": {
+    "*": {
+      "*": {
+        "fontFamily": [{ "value": "Segoe UI" }],
+        "fontSize": [{ "value": 11 }],
+        "fontColor": [{ "value": "#1A2B4A" }]
+      }
+    },
+    "card": {
+      "*": {
+        "background": [{ "value": "#FFFFFF" }],
+        "borderColor": [{ "value": "#E2E8F0" }],
+        "borderShow": [{ "value": true }]
+      }
+    },
+    "slicer": {
+      "*": {
+        "background": [{ "value": "#FFFFFF" }]
+      }
+    },
+    "columnChart": {
+      "*": {
+        "background": [{ "value": "#FFFFFF" }]
+      }
+    },
+    "lineChart": {
+      "*": {
+        "background": [{ "value": "#FFFFFF" }],
+        "lineWidth": [{ "value": 2 }]
+      }
+    },
+    "tableEx": {
+      "*": {
+        "fontColor": [{ "value": "#1A2B4A" }],
+        "background": [{ "value": "#FFFFFF" }],
+        "gridColor": [{ "value": "#E2E8F0" }],
+        "columnHeaderFontColor": [{ "value": "#FFFFFF" }],
+        "columnHeaderBackground": [{ "value": "#1A2B4A" }]
+      }
+    },
+    "pivotTable": {
+      "*": {
+        "fontColor": [{ "value": "#1A2B4A" }],
+        "background": [{ "value": "#FFFFFF" }],
+        "gridColor": [{ "value": "#E2E8F0" }],
+        "columnHeaderFontColor": [{ "value": "#FFFFFF" }],
+        "columnHeaderBackground": [{ "value": "#1A2B4A" }],
+        "rowHeaderFontColor": [{ "value": "#FFFFFF" }],
+        "rowHeaderBackground": [{ "value": "#2D4B7C" }]
+      }
+    }
+  },
+  "textClasses": {
+    "label": {
+      "color": "#718096",
+      "fontSize": 10
+    },
+    "callout": {
+      "color": "#1A2B4A",
+      "fontSize": 28,
+      "fontFace": "Segoe UI Semibold"
+    },
+    "title": {
+      "color": "#1A2B4A",
+      "fontSize": 14,
+      "fontFace": "Segoe UI Semibold"
+    },
+    "header": {
+      "color": "#1A2B4A",
+      "fontSize": 12,
+      "fontFace": "Segoe UI Semibold"
+    }
+  }
+}

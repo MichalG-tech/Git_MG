@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="140" viewBox="0 0 240 140">
+  <title>KPI Card - Background Template</title>
+  <desc>Reusable KPI card background. White card with subtle shadow hint and top accent line. Size: 240x140px. Drop onto a Power BI page and layer visuals on top.</desc>
+
+  <!-- Card body -->
+  <rect width="240" height="140" rx="8" fill="#FFFFFF"/>
+
+  <!-- Top accent line — set color per card type in Power BI (sky=sales, teal=finance) -->
+  <rect x="0" y="0" width="240" height="4" rx="4" fill="#4A90D9"/>
+  <!-- Square off bottom of top radius so line sits flush -->
+  <rect x="0" y="2" width="240" height="2" fill="#4A90D9"/>
+
+  <!-- Subtle bottom-right shadow layer (visual only) -->
+  <rect x="4" y="4" width="236" height="136" rx="8" fill="#1A2B4A" opacity="0.04"/>
+
+  <!-- Icon placeholder circle (top-right) -->
+  <circle cx="208" cy="36" r="20" fill="#F7F9FC"/>
+
+  <!-- Metric label area -->
+  <rect x="16" y="16" width="120" height="10" rx="3" fill="#EDF2F7"/>
+
+  <!-- Primary value area -->
+  <rect x="16" y="40" width="160" height="28" rx="4" fill="#EDF2F7" opacity="0.6"/>
+
+  <!-- Trend indicator area -->
+  <rect x="16" y="84" width="80" height="12" rx="3" fill="#D5F0E1" opacity="0.8"/>
+  <rect x="104" y="84" width="60" height="12" rx="3" fill="#EDF2F7" opacity="0.6"/>
+
+  <!-- Spark line area -->
+  <rect x="16" y="108" width="208" height="20" rx="3" fill="#F7F9FC"/>
+</svg>

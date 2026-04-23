@@ -141,6 +141,7 @@ git push origin feature/add-revenue-targets-measure
 | [COMMON_ERRORS.md](docs/troubleshooting/COMMON_ERRORS.md) | Troubleshooting | Solutions for common Python, TMDL, CI/CD, and Power BI errors |
 | [FAQ.md](docs/troubleshooting/FAQ.md) | Troubleshooting | Frequently asked questions across all areas |
 | [DEBUG_GUIDE.md](docs/troubleshooting/DEBUG_GUIDE.md) | Troubleshooting | Systematic diagnostic techniques for all components |
+| [DESIGN_GUIDE.md](docs/design/DESIGN_GUIDE.md) | Design | Color system, typography, layout grid, Power BI theme application |
 
 ---
 
@@ -151,8 +152,8 @@ git push origin feature/add-revenue-targets-measure
 - [x] Sample data generation — star schema with 500K+ rows
 - [x] Semantic models — Sales Analytics (63 measures) and Finance Reporting (20 measures)
 - [x] GitHub Actions — all 5 workflows with progressive approval gates
-- [x] Documentation suite — 16 reference guides across all areas
-- [ ] Design integration (Power BI background images, color palette)
+- [x] Documentation suite — 17 reference guides across all areas
+- [x] Design system — color palette, SVG backgrounds, Power BI theme JSON
 - [ ] End-to-end deployment testing against live Power BI workspaces
 
 ---

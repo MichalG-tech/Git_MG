@@ -9,10 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-- Remaining documentation files (COMMON_ERRORS.md, DEPLOYMENT_GUIDE.md, TABULAR_EDITOR_GUIDE.md, RUNBOOK.md, FEATURE_WORKFLOW.md, IMPLEMENTATION_GUIDE.md)
-- Design integration — Power BI background images, color palette standards
 - End-to-end XMLA deployment testing against live Power BI workspaces
 - GitHub issue templates
+- Figma mockups (design/figma/ placeholder — see DESIGN_GUIDE.md for spec)
 
 ---
 
