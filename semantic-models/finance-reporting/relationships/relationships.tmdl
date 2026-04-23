@@ -1,83 +1,51 @@
-/// Finance Reporting — Relationship Definitions
-///
-/// Star schema relationships:
-///   FactActuals → DimPeriod    (PeriodKey)     — posting period
-///   FactActuals → DimAccount   (AccountKey)    — account classification
-///   FactActuals → DimDepartment (DepartmentKey)— cost centre
-///   FactActuals → DimEntity    (EntityKey)     — legal entity
-///   FactBudget  → DimPeriod    (PeriodKey)     — budget period
-///   FactBudget  → DimAccount   (AccountKey)    — budgeted account
-///   FactBudget  → DimDepartment (DepartmentKey)— budgeted cost centre
-///   FactBudget  → DimEntity    (EntityKey)     — budgeted entity
-///
-/// All fact-to-dimension relationships are many-to-one.
-/// FactBudget relationships are marked inactive by default; activate via
-/// USERELATIONSHIP() or cross-filtering in budget-specific measures.
-
 relationship fr-rel-001-0000-0000-0000-000000000001
 	fromCardinality: many
-	fromColumn: PeriodKey
-	fromTable: FactActuals
+	fromColumn: FactActuals.PeriodKey
 	toCardinality: one
-	toColumn: PeriodKey
-	toTable: DimPeriod
+	toColumn: DimPeriod.PeriodKey
 
 relationship fr-rel-002-0000-0000-0000-000000000001
 	fromCardinality: many
-	fromColumn: AccountKey
-	fromTable: FactActuals
+	fromColumn: FactActuals.AccountKey
 	toCardinality: one
-	toColumn: AccountKey
-	toTable: DimAccount
+	toColumn: DimAccount.AccountKey
 
 relationship fr-rel-003-0000-0000-0000-000000000001
 	fromCardinality: many
-	fromColumn: DepartmentKey
-	fromTable: FactActuals
+	fromColumn: FactActuals.DepartmentKey
 	toCardinality: one
-	toColumn: DepartmentKey
-	toTable: DimDepartment
+	toColumn: DimDepartment.DepartmentKey
 
 relationship fr-rel-004-0000-0000-0000-000000000001
 	fromCardinality: many
-	fromColumn: EntityKey
-	fromTable: FactActuals
+	fromColumn: FactActuals.EntityKey
 	toCardinality: one
-	toColumn: EntityKey
-	toTable: DimEntity
+	toColumn: DimEntity.EntityKey
 
 relationship fr-rel-005-0000-0000-0000-000000000001
 	fromCardinality: many
-	fromColumn: PeriodKey
-	fromTable: FactBudget
+	fromColumn: FactBudget.PeriodKey
 	toCardinality: one
-	toColumn: PeriodKey
-	toTable: DimPeriod
+	toColumn: DimPeriod.PeriodKey
 	isActive: false
 
 relationship fr-rel-006-0000-0000-0000-000000000001
 	fromCardinality: many
-	fromColumn: AccountKey
-	fromTable: FactBudget
+	fromColumn: FactBudget.AccountKey
 	toCardinality: one
-	toColumn: AccountKey
-	toTable: DimAccount
+	toColumn: DimAccount.AccountKey
 	isActive: false
 
 relationship fr-rel-007-0000-0000-0000-000000000001
 	fromCardinality: many
-	fromColumn: DepartmentKey
-	fromTable: FactBudget
+	fromColumn: FactBudget.DepartmentKey
 	toCardinality: one
-	toColumn: DepartmentKey
-	toTable: DimDepartment
+	toColumn: DimDepartment.DepartmentKey
 	isActive: false
 
 relationship fr-rel-008-0000-0000-0000-000000000001
 	fromCardinality: many
-	fromColumn: EntityKey
-	fromTable: FactBudget
+	fromColumn: FactBudget.EntityKey
 	toCardinality: one
-	toColumn: EntityKey
-	toTable: DimEntity
+	toColumn: DimEntity.EntityKey
 	isActive: false

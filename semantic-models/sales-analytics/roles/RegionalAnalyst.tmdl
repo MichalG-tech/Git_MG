@@ -1,11 +1,6 @@
 role 'Regional Analyst'
 	modelPermission: read
-	description: Row-level security role restricting each user to data for regions assigned to them. The DAX filter on DimRegion uses USERPRINCIPALNAME() to match the logged-in user's email against a hypothetical user-region mapping. In production, replace the placeholder filter with a lookup against a secure user-mapping table or an Azure AD group attribute.
 
-	/// RLS filter: restricts DimRegion rows to those belonging to the logged-in user's assigned regions.
-	/// IMPORTANT: The filter below is a placeholder for PoC demonstration.
-	/// Production implementation should resolve USERPRINCIPALNAME() against a
-	/// Region_UserMapping security table to avoid hardcoded role assignments.
 	tablePermission DimRegion =
 		[RegionName] IN
 		    CALCULATETABLE(

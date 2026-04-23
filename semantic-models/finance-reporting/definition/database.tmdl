@@ -1,3 +1,2 @@
 database Database
 	compatibilityLevel: 1605
-	description: Finance Reporting database definition. Compatibility level 1605 aligns with Power BI Premium and Tabular Editor 3 TMDL support.

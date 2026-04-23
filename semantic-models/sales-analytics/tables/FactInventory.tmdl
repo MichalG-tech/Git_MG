@@ -1,6 +1,5 @@
 table FactInventory
 	lineageTag: fi000007-0000-0000-0000-000000000001
-	description: Periodic inventory snapshot fact table. Each row represents the inventory position of one product in one region on one date. Approximately 90,000 rows (1,500 products × 60 sample dates × regions). Supports stock level, days of supply, and inventory turnover measures.
 
 	column InventoryID
 		dataType: int64
@@ -8,7 +7,6 @@ table FactInventory
 		lineageTag: fi000007-0001-0000-0000-000000000001
 		sourceColumn: InventoryID
 		summarizeBy: none
-		description: Surrogate integer key for the inventory snapshot row.
 
 		annotation SummarizationSetBy = Automatic
 
@@ -18,7 +16,6 @@ table FactInventory
 		lineageTag: fi000007-0002-0000-0000-000000000001
 		sourceColumn: DateID
 		summarizeBy: none
-		description: Foreign key to DimDate[DateID] representing the snapshot date.
 
 		annotation SummarizationSetBy = Automatic
 
@@ -28,7 +25,6 @@ table FactInventory
 		lineageTag: fi000007-0003-0000-0000-000000000001
 		sourceColumn: ProductID
 		summarizeBy: none
-		description: Foreign key to DimProduct[ProductID]. Enables inventory analysis by category, brand, and product.
 
 	column RegionID
 		dataType: int64
@@ -36,7 +32,6 @@ table FactInventory
 		lineageTag: fi000007-0004-0000-0000-000000000001
 		sourceColumn: RegionID
 		summarizeBy: none
-		description: Foreign key to DimRegion[RegionID]. Enables regional inventory analysis and comparisons.
 
 		annotation SummarizationSetBy = Automatic
 
@@ -45,7 +40,6 @@ table FactInventory
 		lineageTag: fi000007-0005-0000-0000-000000000001
 		sourceColumn: QuantityOnHand
 		summarizeBy: sum
-		description: Units physically in stock at the snapshot date. Used in Current Stock and Days of Supply measures. A value of 0 indicates a potential stockout condition.
 
 		annotation SummarizationSetBy = Automatic
 
@@ -54,7 +48,6 @@ table FactInventory
 		lineageTag: fi000007-0006-0000-0000-000000000001
 		sourceColumn: QuantityOnOrder
 		summarizeBy: sum
-		description: Units on open purchase orders not yet received. Combined with QuantityOnHand gives total available supply.
 
 		annotation SummarizationSetBy = Automatic
 
@@ -63,7 +56,6 @@ table FactInventory
 		lineageTag: fi000007-0007-0000-0000-000000000001
 		sourceColumn: MonthlyUsage
 		summarizeBy: average
-		description: Average monthly demand for the product in units. Used to calculate Days of Supply (QuantityOnHand / (MonthlyUsage / 30)).
 
 		annotation SummarizationSetBy = Automatic
 

@@ -1,6 +1,5 @@
 table DimRegion
 	lineageTag: rg000004-0000-0000-0000-000000000001
-	description: Geographic region dimension organised into a three-level hierarchy: Zone → Continent → Region. Connected to FactSales via the RegionID foreign key and to DimCustomer via DimCustomer[RegionID] for customer-geography bridging.
 
 	column RegionID
 		dataType: int64
@@ -8,7 +7,6 @@ table DimRegion
 		lineageTag: rg000004-0001-0000-0000-000000000001
 		sourceColumn: RegionID
 		summarizeBy: none
-		description: Integer surrogate key for the region. Used as the relationship key from FactSales[RegionID] and DimCustomer[RegionID] to this table.
 
 		annotation SummarizationSetBy = Automatic
 
@@ -17,21 +15,18 @@ table DimRegion
 		lineageTag: rg000004-0002-0000-0000-000000000001
 		sourceColumn: RegionName
 		summarizeBy: none
-		description: Display name of the region (e.g. Region 1–50). Used as the lowest-level geographic label in visuals.
 
 	column Continent
 		dataType: string
 		lineageTag: rg000004-0003-0000-0000-000000000001
 		sourceColumn: Continent
 		summarizeBy: none
-		description: Continent of the region (North America, Europe, Asia, South America, Africa, Oceania). Mid-level of the geographic hierarchy.
 
 	column Zone
 		dataType: string
 		lineageTag: rg000004-0004-0000-0000-000000000001
 		sourceColumn: Zone
 		summarizeBy: none
-		description: Global zone grouping (AMER, EMEA, APAC). Top-level geographic rollup used for executive dashboards.
 
 	column SalesTarget
 		dataType: decimal
@@ -39,7 +34,6 @@ table DimRegion
 		sourceColumn: SalesTarget
 		summarizeBy: sum
 		formatString: $ #,##0
-		description: Annual sales target for the region. Used to calculate target attainment in regional performance scorecards.
 
 		annotation SummarizationSetBy = Automatic
 		annotation PBI_FormatHint = {"currencySymbol":"$"}

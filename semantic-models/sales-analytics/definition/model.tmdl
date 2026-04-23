@@ -1,13 +1,8 @@
 model Model
 	culture: en-US
 	defaultPowerBIDataSourceVersion: powerBI_V3
-	description: Sales Analytics semantic model for the Power BI Enterprise PoC. Implements a star schema with one sales fact table, three dimension tables, and a dedicated measures layer. Designed for enterprise reporting and self-service analytics.
 
-	/// DataFolderPath — update to the absolute path of your data/raw/ folder before refreshing.
 	expression DataFolderPath = "C:/Users/glano/GitFolder/data/raw/" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
 		kind: m
-		lineageTag: sa-param-001-0000-0000-000000000000
-		description: Absolute path to the folder containing the sample CSV data files. Update this value before refreshing data in Power BI Desktop or Tabular Editor.
 
 	annotation PBI_QueryOrder = ["DimDate","DimCustomer","DimProduct","DimRegion","FactSales","FactReturns","FactInventory","_Measures"]
-	annotation PBI_ProToolsInfo = H4sIAAAAAAAA/6tWKkktLlGyUlIqS04tLU4tykvMTQUAAAD//w==

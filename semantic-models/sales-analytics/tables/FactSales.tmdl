@@ -1,13 +1,11 @@
 table FactSales
 	lineageTag: fs000005-0000-0000-0000-000000000001
-	description: Central sales fact table containing one row per sales transaction. Relates to all four dimension tables via foreign key columns. All measures are defined in the _Measures table and reference FactSales via standard DAX aggregations.
 
 	column SalesID
 		dataType: string
 		lineageTag: fs000005-0001-0000-0000-000000000001
 		sourceColumn: SalesID
 		summarizeBy: none
-		description: Natural string key for the sales transaction (format SALE00000001). Used as the primary key and in DISTINCTCOUNT([SalesID]) for order count measures.
 
 	column DateID
 		dataType: int64
@@ -15,7 +13,6 @@ table FactSales
 		lineageTag: fs000005-0002-0000-0000-000000000001
 		sourceColumn: DateID
 		summarizeBy: none
-		description: Foreign key to DimDate[DateID]. Hidden — use DimDate columns for date-based analysis.
 
 		annotation SummarizationSetBy = Automatic
 
@@ -25,7 +22,6 @@ table FactSales
 		lineageTag: fs000005-0003-0000-0000-000000000001
 		sourceColumn: CustomerID
 		summarizeBy: none
-		description: Foreign key to DimCustomer[CustomerID]. Hidden — use DimCustomer columns for customer-based analysis.
 
 	column ProductID
 		dataType: string
@@ -33,7 +29,6 @@ table FactSales
 		lineageTag: fs000005-0004-0000-0000-000000000001
 		sourceColumn: ProductID
 		summarizeBy: none
-		description: Foreign key to DimProduct[ProductID]. Hidden — use DimProduct columns for product-based analysis.
 
 	column RegionID
 		dataType: int64
@@ -41,7 +36,6 @@ table FactSales
 		lineageTag: fs000005-0005-0000-0000-000000000001
 		sourceColumn: RegionID
 		summarizeBy: none
-		description: Foreign key to DimRegion[RegionID]. Hidden — use DimRegion columns for geographic analysis.
 
 		annotation SummarizationSetBy = Automatic
 
@@ -50,7 +44,6 @@ table FactSales
 		lineageTag: fs000005-0006-0000-0000-000000000001
 		sourceColumn: Quantity
 		summarizeBy: sum
-		description: Number of units sold in this transaction (1–50). Used in Total Quantity Sold and Average Units Per Order measures.
 
 		annotation SummarizationSetBy = Automatic
 
@@ -60,7 +53,6 @@ table FactSales
 		sourceColumn: UnitPrice
 		summarizeBy: average
 		formatString: $ #,##0.00
-		description: Actual selling price per unit on this transaction. May differ from DimProduct[UnitPrice] due to negotiated or promotional pricing.
 
 		annotation SummarizationSetBy = Automatic
 		annotation PBI_FormatHint = {"currencySymbol":"$"}
@@ -71,7 +63,6 @@ table FactSales
 		sourceColumn: DiscountPct
 		summarizeBy: average
 		formatString: 0.00%
-		description: Discount percentage applied to this transaction (0.00–0.30). Used in Effective Discount Rate % calculation.
 
 		annotation SummarizationSetBy = Automatic
 
@@ -81,7 +72,6 @@ table FactSales
 		sourceColumn: DiscountAmount
 		summarizeBy: sum
 		formatString: $ #,##0.00
-		description: Total discount amount in currency (Quantity × UnitPrice × DiscountPct). Used in Discount Amount measure.
 
 		annotation SummarizationSetBy = Automatic
 		annotation PBI_FormatHint = {"currencySymbol":"$"}
@@ -92,7 +82,6 @@ table FactSales
 		sourceColumn: TotalAmount
 		summarizeBy: sum
 		formatString: $ #,##0.00
-		description: Pre-calculated net sales amount for this transaction (Quantity × UnitPrice × (1 - DiscountPct)). Foundation for the Total Sales measure.
 
 		annotation SummarizationSetBy = Automatic
 		annotation PBI_FormatHint = {"currencySymbol":"$"}
@@ -103,7 +92,6 @@ table FactSales
 		lineageTag: fs000005-0011-0000-0000-000000000001
 		sourceColumn: OrderDate
 		summarizeBy: none
-		description: Transaction date as a date column. The model uses DimDate for time intelligence — OrderDate is provided for completeness and row-level context only.
 
 		annotation SummarizationSetBy = Automatic
 

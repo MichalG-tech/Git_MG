@@ -1,7 +1,6 @@
 table DimPeriod
 	lineageTag: pe000003-0000-0000-0000-000000000001
 	dataCategory: Time
-	description: Financial period dimension aligned to the April fiscal year calendar. Each row represents one calendar month with both calendar and fiscal attributes. PeriodEndDate is used as the date column for time intelligence in financial reporting (budgets and actuals are period-based, not daily).
 
 	column PeriodKey
 		dataType: int64
@@ -9,7 +8,6 @@ table DimPeriod
 		lineageTag: pe000003-0001-0000-0000-000000000001
 		sourceColumn: PeriodKey
 		summarizeBy: none
-		description: Integer surrogate key for the period (sequential, 1 per month). Used as the relationship key between FactActuals/FactBudget and this dimension.
 
 		annotation SummarizationSetBy = Automatic
 
@@ -18,7 +16,6 @@ table DimPeriod
 		lineageTag: pe000003-0002-0000-0000-000000000001
 		sourceColumn: PeriodCode
 		summarizeBy: none
-		description: ISO year-month code (YYYY-MM). Unique identifier for each fiscal period; sortable chronologically as a string.
 
 		sortByColumn: PeriodKey
 
@@ -27,7 +24,6 @@ table DimPeriod
 		lineageTag: pe000003-0003-0000-0000-000000000001
 		sourceColumn: Year
 		summarizeBy: none
-		description: Calendar year of the period.
 
 		annotation SummarizationSetBy = Automatic
 
@@ -36,7 +32,6 @@ table DimPeriod
 		lineageTag: pe000003-0004-0000-0000-000000000001
 		sourceColumn: Quarter
 		summarizeBy: none
-		description: Calendar quarter (1–4).
 
 		annotation SummarizationSetBy = Automatic
 
@@ -45,7 +40,6 @@ table DimPeriod
 		lineageTag: pe000003-0005-0000-0000-000000000001
 		sourceColumn: Month
 		summarizeBy: none
-		description: Calendar month number (1–12).
 
 		annotation SummarizationSetBy = Automatic
 
@@ -54,7 +48,6 @@ table DimPeriod
 		lineageTag: pe000003-0006-0000-0000-000000000001
 		sourceColumn: MonthName
 		summarizeBy: none
-		description: Full month name (January–December).
 
 		sortByColumn: Month
 
@@ -63,7 +56,6 @@ table DimPeriod
 		lineageTag: pe000003-0007-0000-0000-000000000001
 		sourceColumn: FiscalYear
 		summarizeBy: none
-		description: Fiscal year (April start). FY2023 covers April 2022 through March 2023.
 
 		annotation SummarizationSetBy = Automatic
 
@@ -72,7 +64,6 @@ table DimPeriod
 		lineageTag: pe000003-0008-0000-0000-000000000001
 		sourceColumn: FiscalPeriod
 		summarizeBy: none
-		description: Fiscal period number within the fiscal year (1=April through 12=March).
 
 		annotation SummarizationSetBy = Automatic
 
@@ -82,7 +73,6 @@ table DimPeriod
 		lineageTag: pe000003-0009-0000-0000-000000000001
 		sourceColumn: PeriodStartDate
 		summarizeBy: none
-		description: First calendar day of the financial period.
 
 		annotation SummarizationSetBy = Automatic
 
@@ -92,7 +82,6 @@ table DimPeriod
 		lineageTag: pe000003-0010-0000-0000-000000000001
 		sourceColumn: PeriodEndDate
 		summarizeBy: none
-		description: Last calendar day of the financial period. Used as the primary date column for time intelligence measures in this model.
 
 		annotation SummarizationSetBy = Automatic
 
@@ -101,7 +90,6 @@ table DimPeriod
 		lineageTag: pe000003-0011-0000-0000-000000000001
 		sourceColumn: IsCurrentPeriod
 		summarizeBy: none
-		description: True for the most recently completed or current in-progress financial period. Use to default slicer selections to the current period in dashboard reports.
 
 	partition 'DimPeriod-Partition' = m
 		mode: import

@@ -1,17 +1,11 @@
 table _Measures
 	isHidden
 	lineageTag: me000008-0000-0000-0000-000000000001
-	description: Central measures table. This table contains no data rows — it is a hidden utility table that holds all 63 DAX measures for the Sales Analytics model. Organising measures in a single table makes them easier to find in the Fields pane and keeps fact tables clean.
 
-	/// ================================================================
-	/// GROUP 1 — SALES PERFORMANCE (12 measures)
-	/// Core revenue, cost, and profitability metrics
-	/// ================================================================
 
 	measure 'Total Sales' = SUM(FactSales[TotalAmount])
 		formatString: $ #,##0
 		lineageTag: me000008-0101-0000-0000-000000000001
-		description: Total gross sales revenue. Calculated as the sum of the pre-computed TotalAmount column (Quantity × UnitPrice × (1 − DiscountPct)) across all transactions in the filter context.
 
 		annotation PBI_FormatHint = {"currencySymbol":"$"}
 
@@ -22,50 +16,42 @@ table _Measures
 			)
 		formatString: $ #,##0
 		lineageTag: me000008-0102-0000-0000-000000000001
-		description: Total cost of goods sold. Uses RELATED() to fetch standard cost from DimProduct and multiplies by quantity sold, avoiding the need to store cost at the transaction grain.
 
 		annotation PBI_FormatHint = {"currencySymbol":"$"}
 
 	measure 'Gross Profit' = [Total Sales] - [Total Cost]
 		formatString: $ #,##0
 		lineageTag: me000008-0103-0000-0000-000000000001
-		description: Gross profit in currency (Total Sales minus Total Cost). Use with Gross Margin % for profitability analysis.
 
 		annotation PBI_FormatHint = {"currencySymbol":"$"}
 
 	measure 'Gross Margin %' = DIVIDE([Gross Profit], [Total Sales])
 		formatString: 0.0%
 		lineageTag: me000008-0104-0000-0000-000000000001
-		description: Gross profit as a percentage of Total Sales. A higher value indicates better pricing power or lower production costs relative to revenue.
 
 	measure 'Total Quantity Sold' = SUM(FactSales[Quantity])
 		formatString: #,##0
 		lineageTag: me000008-0105-0000-0000-000000000001
-		description: Total units sold across all transactions in the filter context. Use for volume analysis independent of price and discount changes.
 
 	measure 'Order Count' = DISTINCTCOUNT(FactSales[SalesID])
 		formatString: #,##0
 		lineageTag: me000008-0106-0000-0000-000000000001
-		description: Number of distinct sales orders. Used as the denominator in Average Order Value and Avg Orders Per Customer.
 
 	measure 'Average Order Value' = DIVIDE([Total Sales], [Order Count])
 		formatString: $ #,##0.00
 		lineageTag: me000008-0107-0000-0000-000000000001
-		description: Average revenue per order (Total Sales / Order Count). A key KPI for measuring basket size and upsell effectiveness.
 
 		annotation PBI_FormatHint = {"currencySymbol":"$"}
 
 	measure 'Average Selling Price' = DIVIDE([Total Sales], [Total Quantity Sold])
 		formatString: $ #,##0.00
 		lineageTag: me000008-0108-0000-0000-000000000001
-		description: Average realised selling price per unit. Compare against DimProduct[UnitPrice] via the Price Realization % measure to understand discount impact.
 
 		annotation PBI_FormatHint = {"currencySymbol":"$"}
 
 	measure 'Discount Amount' = SUM(FactSales[DiscountAmount])
 		formatString: $ #,##0
 		lineageTag: me000008-0109-0000-0000-000000000001
-		description: Total discount value granted across all transactions (Quantity × UnitPrice × DiscountPct). Use alongside Effective Discount Rate % to quantify revenue leakage.
 
 		annotation PBI_FormatHint = {"currencySymbol":"$"}
 
@@ -76,12 +62,10 @@ table _Measures
 			)
 		formatString: 0.0%
 		lineageTag: me000008-0110-0000-0000-000000000001
-		description: Discount as a percentage of gross revenue before discounts ([Discount Amount] / ([Total Sales] + [Discount Amount])). Reveals the true discount burden on the pre-discount revenue base.
 
 	measure 'Net Sales' = [Total Sales] - [Return Amount]
 		formatString: $ #,##0
 		lineageTag: me000008-0111-0000-0000-000000000001
-		description: Revenue after deducting return refunds (Total Sales minus Return Amount). Use in conjunction with Return Amount Rate % to understand the net revenue impact of returns.
 
 		annotation PBI_FormatHint = {"currencySymbol":"$"}
 
@@ -92,18 +76,12 @@ table _Measures
 			)
 		formatString: 0.0%
 		lineageTag: me000008-0112-0000-0000-000000000001
-		description: Net profitability as a percentage of Total Sales after subtracting both cost of goods and return refunds. Provides a conservative bottom-line view of margin performance.
 
-	/// ================================================================
-	/// GROUP 2 — TIME INTELLIGENCE: PERIOD TOTALS (8 measures)
-	/// MTD, QTD, YTD, rolling windows, and prior-period comparisons
-	/// ================================================================
 
 	measure 'Sales MTD' =
 			CALCULATE([Total Sales], DATESMTD(DimDate[Date]))
 		formatString: $ #,##0
 		lineageTag: me000008-0201-0000-0000-000000000001
-		description: Month-to-date sales cumulative from the first day of the current month to the last date in the filter context. Requires DimDate to be marked as a date table.
 
 		annotation PBI_FormatHint = {"currencySymbol":"$"}
 
@@ -111,7 +89,6 @@ table _Measures
 			CALCULATE([Total Sales], DATESQTD(DimDate[Date]))
 		formatString: $ #,##0
 		lineageTag: me000008-0202-0000-0000-000000000001
-		description: Quarter-to-date sales cumulative from the first day of the current quarter. Requires DimDate to be marked as a date table.
 
 		annotation PBI_FormatHint = {"currencySymbol":"$"}
 
@@ -119,7 +96,6 @@ table _Measures
 			CALCULATE([Total Sales], DATESYTD(DimDate[Date]))
 		formatString: $ #,##0
 		lineageTag: me000008-0203-0000-0000-000000000001
-		description: Year-to-date sales cumulative from 1 January of the current year. Requires DimDate to be marked as a date table. Use with YTD vs Prior YTD % for year-on-year progress.
 
 		annotation PBI_FormatHint = {"currencySymbol":"$"}
 
@@ -127,7 +103,6 @@ table _Measures
 			CALCULATE([Total Sales], DATEADD(DimDate[Date], -1, MONTH))
 		formatString: $ #,##0
 		lineageTag: me000008-0204-0000-0000-000000000001
-		description: Total sales for the same period one month prior. Used as the denominator in MoM Sales Growth %.
 
 		annotation PBI_FormatHint = {"currencySymbol":"$"}
 
@@ -135,7 +110,6 @@ table _Measures
 			CALCULATE([Total Sales], DATEADD(DimDate[Date], -1, QUARTER))
 		formatString: $ #,##0
 		lineageTag: me000008-0205-0000-0000-000000000001
-		description: Total sales for the same period one quarter prior. Used as the denominator in QoQ Sales Growth %.
 
 		annotation PBI_FormatHint = {"currencySymbol":"$"}
 
@@ -143,7 +117,6 @@ table _Measures
 			CALCULATE([Total Sales], DATEADD(DimDate[Date], -1, YEAR))
 		formatString: $ #,##0
 		lineageTag: me000008-0206-0000-0000-000000000001
-		description: Total sales for the equivalent period in the prior year. Used as the denominator in YoY Sales Growth %.
 
 		annotation PBI_FormatHint = {"currencySymbol":"$"}
 
@@ -154,7 +127,6 @@ table _Measures
 			)
 		formatString: $ #,##0
 		lineageTag: me000008-0207-0000-0000-000000000001
-		description: Trailing 3-month rolling sales window ending on the last date in the filter context. Smooths short-term volatility for trend analysis.
 
 		annotation PBI_FormatHint = {"currencySymbol":"$"}
 
@@ -165,14 +137,9 @@ table _Measures
 			)
 		formatString: $ #,##0
 		lineageTag: me000008-0208-0000-0000-000000000001
-		description: Trailing 12-month rolling sales window. Eliminates seasonal distortion when comparing performance across different calendar periods.
 
 		annotation PBI_FormatHint = {"currencySymbol":"$"}
 
-	/// ================================================================
-	/// GROUP 3 — TIME INTELLIGENCE: GROWTH & YTD COMPARISON (7 measures)
-	/// Period-over-period growth rates and YTD comparisons
-	/// ================================================================
 
 	measure 'MoM Sales Growth %' =
 			DIVIDE(
@@ -181,7 +148,6 @@ table _Measures
 			)
 		formatString: +0.0%;-0.0%;0.0%
 		lineageTag: me000008-0301-0000-0000-000000000001
-		description: Month-over-month sales growth rate. Positive values indicate improvement; negative values indicate decline. Format string displays + for positive, - for negative.
 
 	measure 'QoQ Sales Growth %' =
 			DIVIDE(
@@ -190,7 +156,6 @@ table _Measures
 			)
 		formatString: +0.0%;-0.0%;0.0%
 		lineageTag: me000008-0302-0000-0000-000000000001
-		description: Quarter-over-quarter sales growth rate. Useful for identifying quarterly momentum shifts.
 
 	measure 'YoY Sales Growth %' =
 			DIVIDE(
@@ -199,13 +164,11 @@ table _Measures
 			)
 		formatString: +0.0%;-0.0%;0.0%
 		lineageTag: me000008-0303-0000-0000-000000000001
-		description: Year-over-year sales growth rate. The most commonly cited growth metric for executive dashboards and investor reporting.
 
 	measure 'Profit YTD' =
 			CALCULATE([Gross Profit], DATESYTD(DimDate[Date]))
 		formatString: $ #,##0
 		lineageTag: me000008-0304-0000-0000-000000000001
-		description: Year-to-date gross profit cumulative from 1 January. Use alongside Sales YTD to monitor whether profitability is tracking proportionally to revenue growth.
 
 		annotation PBI_FormatHint = {"currencySymbol":"$"}
 
@@ -213,7 +176,6 @@ table _Measures
 			CALCULATE([Gross Profit], DATEADD(DimDate[Date], -1, YEAR))
 		formatString: $ #,##0
 		lineageTag: me000008-0305-0000-0000-000000000001
-		description: Gross profit for the same period one year prior. Used as the benchmark in YoY Profit Growth %.
 
 		annotation PBI_FormatHint = {"currencySymbol":"$"}
 
@@ -224,7 +186,6 @@ table _Measures
 			)
 		formatString: +0.0%;-0.0%;0.0%
 		lineageTag: me000008-0306-0000-0000-000000000001
-		description: Year-over-year gross profit growth. Compare against YoY Sales Growth % to identify whether revenue growth is translating into proportional profit improvement.
 
 	measure 'YTD vs Prior YTD %' =
 			DIVIDE(
@@ -233,22 +194,15 @@ table _Measures
 			)
 		formatString: 0.0%
 		lineageTag: me000008-0307-0000-0000-000000000001
-		description: Current year-to-date sales as a percentage of the prior year's same YTD period. Values above 100% indicate the business is ahead of last year's pace.
 
-	/// ================================================================
-	/// GROUP 4 — RETURNS ANALYTICS (5 measures)
-	/// Return volume, refund value, and rate trends
-	/// ================================================================
 
 	measure 'Total Returns' = DISTINCTCOUNT(FactReturns[ReturnID])
 		formatString: #,##0
 		lineageTag: me000008-0401-0000-0000-000000000001
-		description: Total number of distinct return transactions. Use with Return Rate % to assess the volume impact of returns on operational efficiency.
 
 	measure 'Return Amount' = SUM(FactReturns[RefundAmount])
 		formatString: $ #,##0
 		lineageTag: me000008-0402-0000-0000-000000000001
-		description: Total monetary value of all refunds issued. Use with Net Sales to calculate the revenue impact of returns.
 
 		annotation PBI_FormatHint = {"currencySymbol":"$"}
 
@@ -256,30 +210,22 @@ table _Measures
 			DIVIDE([Total Returns], [Order Count])
 		formatString: 0.0%
 		lineageTag: me000008-0403-0000-0000-000000000001
-		description: Returns as a percentage of total orders (Total Returns / Order Count). Industry benchmark varies by sector; values above 10% typically warrant investigation.
 
 	measure 'Return Amount Rate %' =
 			DIVIDE([Return Amount], [Total Sales])
 		formatString: 0.0%
 		lineageTag: me000008-0404-0000-0000-000000000001
-		description: Return refund value as a percentage of Total Sales. Measures the monetary impact of returns on revenue; complements Return Rate % which counts transactions.
 
 	measure 'YoY Return Rate Change' =
 			[Return Rate %]
 			    - CALCULATE([Return Rate %], DATEADD(DimDate[Date], -1, YEAR))
 		formatString: +0.0%;-0.0%;0.0%
 		lineageTag: me000008-0405-0000-0000-000000000001
-		description: Change in Return Rate % compared to the same period one year ago (in percentage points, not relative change). A negative value indicates the return rate is improving year-on-year.
 
-	/// ================================================================
-	/// GROUP 5 — CUSTOMER ANALYTICS (10 measures)
-	/// Customer counts, retention, spend per customer, and cohort metrics
-	/// ================================================================
 
 	measure 'Total Customers' = DISTINCTCOUNT(FactSales[CustomerID])
 		formatString: #,##0
 		lineageTag: me000008-0501-0000-0000-000000000001
-		description: Number of distinct customers who made at least one purchase in the filter context. Use with Active Customers (90d) to understand what share of the base is recently active.
 
 	measure 'Active Customers (90d)' =
 			CALCULATE(
@@ -288,7 +234,6 @@ table _Measures
 			)
 		formatString: #,##0
 		lineageTag: me000008-0502-0000-0000-000000000001
-		description: Customers with at least one purchase in the trailing 90 days. A proxy for the active customer base; use for churn monitoring and retention dashboards.
 
 	measure 'New Customers' =
 			CALCULATE(
@@ -301,19 +246,16 @@ table _Measures
 			)
 		formatString: #,##0
 		lineageTag: me000008-0503-0000-0000-000000000001
-		description: Customers whose JoinDate falls within the selected month and year. Tracks new customer acquisition velocity; compare against churn to monitor net customer growth.
 
 	measure 'Customer Retention Rate %' =
 			DIVIDE([Active Customers (90d)], [Total Customers])
 		formatString: 0.0%
 		lineageTag: me000008-0504-0000-0000-000000000001
-		description: Percentage of total customers who were active in the last 90 days. A high retention rate signals strong customer loyalty and product-market fit.
 
 	measure 'Avg Revenue Per Customer' =
 			DIVIDE([Total Sales], [Total Customers])
 		formatString: $ #,##0
 		lineageTag: me000008-0505-0000-0000-000000000001
-		description: Average revenue generated per unique customer. Tracks customer monetisation over time; growing ARPC indicates successful upsell or cross-sell initiatives.
 
 		annotation PBI_FormatHint = {"currencySymbol":"$"}
 
@@ -321,7 +263,6 @@ table _Measures
 			DIVIDE([Total Sales], [Active Customers (90d)])
 		formatString: $ #,##0
 		lineageTag: me000008-0506-0000-0000-000000000001
-		description: Revenue per customer who was active in the last 90 days. More conservative than Avg Revenue Per Customer as it excludes dormant accounts from the denominator.
 
 		annotation PBI_FormatHint = {"currencySymbol":"$"}
 
@@ -335,13 +276,11 @@ table _Measures
 			)
 		formatString: #,##0
 		lineageTag: me000008-0507-0000-0000-000000000001
-		description: Customers who placed more than one order in the filter context. Distinguishes loyal repeat buyers from one-time purchasers.
 
 	measure 'Repeat Rate %' =
 			DIVIDE([Repeat Customers], [Total Customers])
 		formatString: 0.0%
 		lineageTag: me000008-0508-0000-0000-000000000001
-		description: Percentage of customers who made more than one purchase (Repeat Customers / Total Customers). A key indicator of product satisfaction and brand loyalty.
 
 	measure 'Top 10 Customer Concentration %' =
 			DIVIDE(
@@ -353,23 +292,16 @@ table _Measures
 			)
 		formatString: 0.0%
 		lineageTag: me000008-0509-0000-0000-000000000001
-		description: Revenue share contributed by the top 10 customers by sales. High concentration (>50%) signals customer dependency risk; low concentration indicates a diversified revenue base.
 
 	measure 'Avg Orders Per Customer' =
 			DIVIDE([Order Count], [Total Customers])
 		formatString: #,##0.0
 		lineageTag: me000008-0510-0000-0000-000000000001
-		description: Average number of orders placed per unique customer. An increasing trend indicates growing customer engagement and purchase frequency.
 
-	/// ================================================================
-	/// GROUP 6 — PRODUCT ANALYTICS (8 measures)
-	/// Product breadth, margin by product, and pricing analysis
-	/// ================================================================
 
 	measure 'Products Sold' = DISTINCTCOUNT(FactSales[ProductID])
 		formatString: #,##0
 		lineageTag: me000008-0601-0000-0000-000000000001
-		description: Number of distinct products that appeared in at least one sale in the filter context. Compare against total product count to identify the share of the catalogue generating revenue.
 
 	measure 'Product Contribution %' =
 			DIVIDE(
@@ -378,13 +310,11 @@ table _Measures
 			)
 		formatString: 0.0%
 		lineageTag: me000008-0602-0000-0000-000000000001
-		description: This product's (or group's) share of total sales with all DimProduct filters removed. Use in a matrix or bar chart to show each category or product's relative revenue contribution.
 
 	measure 'Avg Units Per Order' =
 			DIVIDE([Total Quantity Sold], [Order Count])
 		formatString: #,##0.0
 		lineageTag: me000008-0603-0000-0000-000000000001
-		description: Average quantity of units per order. Growing basket size suggests effective upsell or bundling strategies.
 
 	measure 'Product Return Rate %' =
 			DIVIDE(
@@ -393,13 +323,11 @@ table _Measures
 			)
 		formatString: 0.0%
 		lineageTag: me000008-0604-0000-0000-000000000001
-		description: Return rate calculated in the context of the selected product or category. Enables identification of high-return products that may indicate quality or description issues.
 
 	measure 'Avg List Price' =
 			CALCULATE(AVERAGE(DimProduct[UnitPrice]), ALL(FactSales))
 		formatString: $ #,##0.00
 		lineageTag: me000008-0605-0000-0000-000000000001
-		description: Average standard list price across products in scope. Use with Average Selling Price to understand the net impact of discounting.
 
 		annotation PBI_FormatHint = {"currencySymbol":"$"}
 
@@ -407,7 +335,6 @@ table _Measures
 			DIVIDE([Average Selling Price], [Avg List Price])
 		formatString: 0.0%
 		lineageTag: me000008-0606-0000-0000-000000000001
-		description: Ratio of Average Selling Price to Avg List Price. Values below 100% indicate discounting below list; values above 100% indicate premium realisation.
 
 	measure 'Product Gross Margin %' =
 			DIVIDE(
@@ -423,7 +350,6 @@ table _Measures
 			)
 		formatString: 0.0%
 		lineageTag: me000008-0607-0000-0000-000000000001
-		description: Gross margin percentage calculated at list price rather than actual selling price. Shows the theoretical maximum margin before discounts are applied; compare against Gross Margin % to quantify discount margin erosion.
 
 	measure 'Category Sales Rank' =
 			RANKX(
@@ -434,27 +360,19 @@ table _Measures
 			    DENSE
 			)
 		lineageTag: me000008-0608-0000-0000-000000000001
-		description: Rank of the selected category by Total Sales (1 = highest revenue category). Use in a conditional formatting rule to highlight the top-performing category.
 
-	/// ================================================================
-	/// GROUP 7 — INVENTORY ANALYTICS (5 measures)
-	/// Stock levels, supply coverage, and inventory health
-	/// ================================================================
 
 	measure 'Current Stock' = SUM(FactInventory[QuantityOnHand])
 		formatString: #,##0
 		lineageTag: me000008-0701-0000-0000-000000000001
-		description: Total units currently on hand across all selected products and regions. A value of 0 on any product indicates a stockout condition.
 
 	measure 'Stock on Order' = SUM(FactInventory[QuantityOnOrder])
 		formatString: #,##0
 		lineageTag: me000008-0702-0000-0000-000000000001
-		description: Total units on open purchase orders not yet received. Combined with Current Stock gives total available supply coverage.
 
 	measure 'Avg Monthly Usage' = AVERAGE(FactInventory[MonthlyUsage])
 		formatString: #,##0
 		lineageTag: me000008-0703-0000-0000-000000000001
-		description: Average monthly demand for the product(s) in scope. Used as the denominator in Days of Supply calculation.
 
 	measure 'Days of Supply' =
 			DIVIDE(
@@ -463,7 +381,6 @@ table _Measures
 			)
 		formatString: #,##0.0
 		lineageTag: me000008-0704-0000-0000-000000000001
-		description: Estimated days of remaining stock coverage (Current Stock / (Avg Monthly Usage / 30)). Values below 30 may indicate a risk of stockout; values above 90 may indicate overstock.
 
 	measure 'Stockout Products' =
 			CALCULATE(
@@ -472,12 +389,7 @@ table _Measures
 			)
 		formatString: #,##0
 		lineageTag: me000008-0705-0000-0000-000000000001
-		description: Count of distinct products with zero units on hand in the current snapshot. Use on a KPI card with a red conditional formatting threshold to flag stockout situations.
 
-	/// ================================================================
-	/// GROUP 8 — GEOGRAPHY (4 measures)
-	/// Regional sales share, concentration, and velocity by region
-	/// ================================================================
 
 	measure 'Region Sales %' =
 			DIVIDE(
@@ -486,18 +398,15 @@ table _Measures
 			)
 		formatString: 0.0%
 		lineageTag: me000008-0801-0000-0000-000000000001
-		description: This region's share of total sales with all DimRegion filters removed. Use in a filled map visual or a region-by-region bar chart to show geographic revenue distribution.
 
 	measure 'Active Regions' = DISTINCTCOUNT(FactSales[RegionID])
 		formatString: #,##0
 		lineageTag: me000008-0802-0000-0000-000000000001
-		description: Number of distinct regions that recorded at least one sale in the filter context. Use to monitor geographic reach and identify expansion opportunities.
 
 	measure 'Sales per Region' =
 			DIVIDE([Total Sales], [Active Regions])
 		formatString: $ #,##0
 		lineageTag: me000008-0803-0000-0000-000000000001
-		description: Average sales per active region. Increasing values indicate either revenue concentration or improved regional performance.
 
 		annotation PBI_FormatHint = {"currencySymbol":"$"}
 
@@ -508,12 +417,7 @@ table _Measures
 			)
 		formatString: 0.0%
 		lineageTag: me000008-0804-0000-0000-000000000001
-		description: Actual sales as a percentage of the regional sales target (from DimRegion[SalesTarget]). Values above 100% indicate target exceeded; below 100% indicates a gap. Use with conditional formatting on a region scorecard.
 
-	/// ================================================================
-	/// GROUP 9 — RANKING & INTELLIGENCE (7 measures)
-	/// Dynamic ranks, % of total, cumulative share, and velocity
-	/// ================================================================
 
 	measure 'Sales % of Total' =
 			DIVIDE(
@@ -522,7 +426,6 @@ table _Measures
 			)
 		formatString: 0.0%
 		lineageTag: me000008-0901-0000-0000-000000000001
-		description: This item's share of absolute total sales with all filters removed. Use as a column in a matrix or table to show each item's proportional contribution to the grand total.
 
 	measure 'Product Sales Rank' =
 			RANKX(
@@ -533,7 +436,6 @@ table _Measures
 			    DENSE
 			)
 		lineageTag: me000008-0902-0000-0000-000000000001
-		description: Rank of the selected product by Total Sales (1 = highest revenue). Use in conditional formatting rules to highlight top N products, or in a TOPN filter visual.
 
 	measure 'Customer Sales Rank' =
 			RANKX(
@@ -544,7 +446,6 @@ table _Measures
 			    DENSE
 			)
 		lineageTag: me000008-0903-0000-0000-000000000001
-		description: Rank of the selected customer by Total Sales (1 = highest revenue customer). Use in customer 360 dashboards or top-customer leaderboard visuals.
 
 	measure 'Cumulative Sales %' =
 			VAR CurrentRank = [Product Sales Rank]
@@ -558,7 +459,6 @@ table _Measures
 			)
 		formatString: 0.0%
 		lineageTag: me000008-0904-0000-0000-000000000001
-		description: Running cumulative share of total sales ordered by Product Sales Rank. Use in a Pareto / ABC analysis chart to visualise the 80/20 rule (e.g. the top 20% of products generating 80% of revenue).
 
 	measure 'Sales Velocity (Daily)' =
 			DIVIDE(
@@ -573,7 +473,6 @@ table _Measures
 			)
 		formatString: $ #,##0
 		lineageTag: me000008-0905-0000-0000-000000000001
-		description: Average daily sales revenue across days with at least one transaction. Useful for forecasting and identifying seasonal peaks without distortion from non-trading days.
 
 		annotation PBI_FormatHint = {"currencySymbol":"$"}
 
@@ -581,7 +480,6 @@ table _Measures
 			CALCULATE([Total Sales], DimDate[IsWeekend] = TRUE)
 		formatString: $ #,##0
 		lineageTag: me000008-0906-0000-0000-000000000001
-		description: Sales on Saturday and Sunday only. Use alongside Weekday Sales to analyse weekend vs. weekday revenue patterns by channel or product.
 
 		annotation PBI_FormatHint = {"currencySymbol":"$"}
 
@@ -589,7 +487,6 @@ table _Measures
 			CALCULATE([Total Sales], DimDate[IsWeekend] = FALSE)
 		formatString: $ #,##0
 		lineageTag: me000008-0907-0000-0000-000000000001
-		description: Sales on Monday through Friday only. Compare against Weekend Sales to understand day-of-week revenue distribution.
 
 		annotation PBI_FormatHint = {"currencySymbol":"$"}
 

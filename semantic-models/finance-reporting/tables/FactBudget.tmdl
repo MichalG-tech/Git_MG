@@ -1,6 +1,5 @@
 table FactBudget
 	lineageTag: fb000006-0000-0000-0000-000000000001
-	description: Financial budget fact table containing one row per budget allocation per account, department, period, and entity. BudgetVersion enables scenario analysis (Original Budget, Revised Budget, Forecast) by keeping multiple budget iterations alongside actuals. This is the single source of truth for budget-vs-actual variance analysis.
 
 	column BudgetID
 		dataType: int64
@@ -8,7 +7,6 @@ table FactBudget
 		lineageTag: fb000006-0001-0000-0000-000000000001
 		sourceColumn: BudgetID
 		summarizeBy: none
-		description: Surrogate integer key for the budget allocation row.
 
 		annotation SummarizationSetBy = Automatic
 
@@ -18,7 +16,6 @@ table FactBudget
 		lineageTag: fb000006-0002-0000-0000-000000000001
 		sourceColumn: AccountKey
 		summarizeBy: none
-		description: Foreign key to DimAccount[AccountKey]. Drives account-level budget filtering in variance measures.
 
 		annotation SummarizationSetBy = Automatic
 
@@ -28,7 +25,6 @@ table FactBudget
 		lineageTag: fb000006-0003-0000-0000-000000000001
 		sourceColumn: DepartmentKey
 		summarizeBy: none
-		description: Foreign key to DimDepartment[DepartmentKey]. Enables departmental budget allocation tracking.
 
 		annotation SummarizationSetBy = Automatic
 
@@ -38,7 +34,6 @@ table FactBudget
 		lineageTag: fb000006-0004-0000-0000-000000000001
 		sourceColumn: PeriodKey
 		summarizeBy: none
-		description: Foreign key to DimPeriod[PeriodKey]. Budget figures are period-aligned (monthly) to support period-level variance analysis.
 
 		annotation SummarizationSetBy = Automatic
 
@@ -48,7 +43,6 @@ table FactBudget
 		lineageTag: fb000006-0005-0000-0000-000000000001
 		sourceColumn: EntityKey
 		summarizeBy: none
-		description: Foreign key to DimEntity[EntityKey]. Enables entity-level budget reporting.
 
 		annotation SummarizationSetBy = Automatic
 
@@ -58,7 +52,6 @@ table FactBudget
 		sourceColumn: BudgetAmount
 		summarizeBy: sum
 		formatString: #,##0.00
-		description: Budgeted amount in local currency for this account-department-period-entity combination. Use the Budget measure (not this column directly) to ensure correct version filtering and sign conventions.
 
 		annotation SummarizationSetBy = Automatic
 
@@ -67,7 +60,6 @@ table FactBudget
 		lineageTag: fb000006-0007-0000-0000-000000000001
 		sourceColumn: BudgetVersion
 		summarizeBy: none
-		description: Budget iteration label (Original Budget, Revised Budget, Latest Forecast). Always filter to a specific version for meaningful variance analysis — combining multiple versions produces inflated totals.
 
 	partition 'FactBudget-Partition' = m
 		mode: import
