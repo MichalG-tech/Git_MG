@@ -54,7 +54,7 @@ table DimEntity
 		summarizeBy: none
 		description: True if this entity is included in the consolidated group financial statements. Filter to True for group-level P&L; exclude intercompany entities for accurate revenue and expense figures.
 
-	partition DimEntity-Partition = m
+	partition 'DimEntity-Partition' = m
 		mode: import
 		source =
 				let

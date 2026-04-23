@@ -156,7 +156,7 @@ table DimDate
 
 		annotation SummarizationSetBy = Automatic
 
-	partition DimDate-Partition = m
+	partition 'DimDate-Partition' = m
 		mode: import
 		source =
 				let

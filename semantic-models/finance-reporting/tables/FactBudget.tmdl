@@ -69,7 +69,7 @@ table FactBudget
 		summarizeBy: none
 		description: Budget iteration label (Original Budget, Revised Budget, Latest Forecast). Always filter to a specific version for meaningful variance analysis — combining multiple versions produces inflated totals.
 
-	partition FactBudget-Partition = m
+	partition 'FactBudget-Partition' = m
 		mode: import
 		source =
 				let

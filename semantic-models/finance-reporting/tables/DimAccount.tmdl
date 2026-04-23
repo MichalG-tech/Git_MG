@@ -75,7 +75,7 @@ table DimAccount
 		summarizeBy: none
 		description: Account code of the parent in the account hierarchy. Enables rollup analysis and subtotal calculations across account groups.
 
-	partition DimAccount-Partition = m
+	partition 'DimAccount-Partition' = m
 		mode: import
 		source =
 				let

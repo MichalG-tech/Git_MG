@@ -44,7 +44,7 @@ table DimRegion
 		annotation SummarizationSetBy = Automatic
 		annotation PBI_FormatHint = {"currencySymbol":"$"}
 
-	partition DimRegion-Partition = m
+	partition 'DimRegion-Partition' = m
 		mode: import
 		source =
 				let

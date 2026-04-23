@@ -103,7 +103,7 @@ table DimPeriod
 		summarizeBy: none
 		description: True for the most recently completed or current in-progress financial period. Use to default slicer selections to the current period in dashboard reports.
 
-	partition DimPeriod-Partition = m
+	partition 'DimPeriod-Partition' = m
 		mode: import
 		source =
 				let

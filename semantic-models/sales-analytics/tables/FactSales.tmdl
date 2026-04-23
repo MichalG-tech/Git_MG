@@ -107,7 +107,7 @@ table FactSales
 
 		annotation SummarizationSetBy = Automatic
 
-	partition FactSales-Partition = m
+	partition 'FactSales-Partition' = m
 		mode: import
 		source =
 				let

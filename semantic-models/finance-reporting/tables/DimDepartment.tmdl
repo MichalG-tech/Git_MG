@@ -47,7 +47,7 @@ table DimDepartment
 		summarizeBy: none
 		description: True if the department is currently active. Filter to IsActive = True to exclude dissolved departments from current period reporting.
 
-	partition DimDepartment-Partition = m
+	partition 'DimDepartment-Partition' = m
 		mode: import
 		source =
 				let

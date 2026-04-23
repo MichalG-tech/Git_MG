@@ -67,7 +67,7 @@ table FactInventory
 
 		annotation SummarizationSetBy = Automatic
 
-	partition FactInventory-Partition = m
+	partition 'FactInventory-Partition' = m
 		mode: import
 		source =
 				let

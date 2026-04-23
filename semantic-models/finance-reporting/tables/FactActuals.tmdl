@@ -69,7 +69,7 @@ table FactActuals
 		summarizeBy: none
 		description: Reference number linking this entry to the originating journal batch in the ERP system. Used for audit trail drill-through.
 
-	partition FactActuals-Partition = m
+	partition 'FactActuals-Partition' = m
 		mode: import
 		source =
 				let

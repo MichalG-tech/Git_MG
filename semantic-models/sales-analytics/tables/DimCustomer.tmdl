@@ -71,7 +71,7 @@ table DimCustomer
 
 		annotation SummarizationSetBy = Automatic
 
-	partition DimCustomer-Partition = m
+	partition 'DimCustomer-Partition' = m
 		mode: import
 		source =
 				let

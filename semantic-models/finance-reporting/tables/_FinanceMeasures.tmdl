@@ -162,7 +162,7 @@ table _FinanceMeasures
 		lineageTag: fm000007-0409-0000-0000-000000000001
 		description: Net Income as a percentage of Revenue. The definitive profitability ratio; values below 0% indicate a loss-making period.
 
-	partition _FinanceMeasures-Partition = m
+	partition '_FinanceMeasures-Partition' = m
 		mode: import
 		source =
 				let

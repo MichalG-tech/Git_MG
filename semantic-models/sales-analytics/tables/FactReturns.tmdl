@@ -80,7 +80,7 @@ table FactReturns
 		summarizeBy: none
 		description: Reason category for the return (Defective, Wrong Item, Not as Described, Changed Mind, Duplicate Order). Use as a slicer or legend in return reason analysis.
 
-	partition FactReturns-Partition = m
+	partition 'FactReturns-Partition' = m
 		mode: import
 		source =
 				let
