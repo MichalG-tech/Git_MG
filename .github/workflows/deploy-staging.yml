@@ -1,5 +1,9 @@
 name: Deploy to Staging
 
+# NOTE: Requires Power BI Premium or PPU workspace. Configure STAGING_WORKSPACE_ID
+# and the POWERBI_* secrets. Also configure the 'staging' GitHub Environment with
+# a required reviewer before this workflow will pause for approval.
+
 # Triggers on stable release creation (v*.*.* without -rc suffix)
 # or manually via workflow_dispatch with required approval.
 #

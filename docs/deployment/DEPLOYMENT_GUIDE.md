@@ -2,6 +2,8 @@
 
 Step-by-step procedures for deploying semantic models across all five environments.
 
+> **Power BI Desktop users**: The five-environment pipeline described here requires Power BI Premium or PPU workspaces with XMLA endpoints. For local model preview without a workspace, see the [Desktop-only workflow in TABULAR_EDITOR_GUIDE.md](../tabular-editor/TABULAR_EDITOR_GUIDE.md#deploying----desktop-local-no-premium). The GitHub Actions CI validation (PR checks, unit tests) runs on every push regardless of licence.
+
 ---
 
 ## Architecture Overview

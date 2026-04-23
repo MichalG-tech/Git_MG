@@ -1,5 +1,9 @@
 name: Deploy to Dev
 
+# NOTE: This workflow deploys via XMLA endpoint and requires a Power BI Premium
+# or PPU workspace. Configure DEV_WORKSPACE_ID and the POWERBI_* secrets before
+# expecting deployment steps to succeed. PR validation runs without these secrets.
+
 # Triggers automatically on every push to the develop branch.
 # Purpose: Provide developers with a continuously-updated Dev environment
 # that reflects the latest code on develop. Zero manual steps required —

@@ -4,6 +4,19 @@ Full environment configuration for local development and CI/CD deployment.
 
 ---
 
+## Setup Modes
+
+Choose the setup that matches your environment:
+
+| Mode | Tools required | What works |
+|------|---------------|-----------|
+| **Desktop-only** | Git, Python, Power BI Desktop, Tabular Editor 3 | TMDL authoring, 83 measures, local model preview, GitHub Actions CI validation |
+| **Full (with Service)** | Above + Power BI Premium or PPU workspace + Azure AD | All of the above plus multi-environment deployment, scheduled refresh, shared workspaces |
+
+**The PoC is fully demonstrable in Desktop-only mode.** The GitHub Actions deployment workflows are included as architecture demonstrations — they require a Premium workspace to actually execute deployment steps, but the CI validation (PR checks, unit tests) runs without one.
+
+---
+
 ## Local Development Environment
 
 ### Python Setup
@@ -55,7 +68,9 @@ ms-vscode.powershell
 
 ---
 
-## GitHub Repository Secrets
+## GitHub Repository Secrets (Service Deployment — requires Power BI Premium or PPU)
+
+> **Desktop-only users**: skip this entire section. The PR validation workflow runs without any secrets. Only the deploy workflows (deploy-dev, deploy-test, deploy-staging, deploy-prod) need these secrets, and those require a Premium workspace to target.
 
 Configure these secrets in **GitHub → Settings → Secrets and variables → Actions**:
 

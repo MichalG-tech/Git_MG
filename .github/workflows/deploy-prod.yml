@@ -1,5 +1,9 @@
 name: Deploy to Production
 
+# NOTE: Requires Power BI Premium or PPU workspace. Configure PROD_WORKSPACE_ID
+# and the POWERBI_* secrets. Configure the 'production' GitHub Environment with
+# a required reviewer. The CONFIRM input and approval gate are enforced regardless.
+
 # Production deployment is the final stage of the pipeline.
 # It requires:
 #   1. A stable release tag (v*.*.*)

@@ -4,6 +4,19 @@ How to use Tabular Editor 3 (TE3) with the TMDL semantic models in this reposito
 
 ---
 
+## Deployment Modes — Desktop vs Service
+
+This PoC supports two deployment targets:
+
+| Mode | Requirement | What it enables |
+|------|-------------|----------------|
+| **Desktop (local)** | Power BI Desktop + TE3 | Full model authoring and visual building on your machine — no licence beyond Desktop |
+| **Service (workspace)** | Power BI Premium or PPU workspace | Shared workspaces, scheduled refresh, row-level security enforcement, GitHub Actions CI/CD |
+
+**If you have Power BI Desktop only** — use the Desktop mode. Everything in the PoC (TMDL authoring, 83 measures, validation, GitHub Actions CI) is fully accessible. The Service deployment workflows are included as architecture demonstrations for clients who do have Premium.
+
+---
+
 ## Why Tabular Editor 3
 
 Power BI Desktop cannot open TMDL folders directly. Tabular Editor 3 is the primary authoring and editing tool for TMDL-based models:
@@ -11,10 +24,10 @@ Power BI Desktop cannot open TMDL folders directly. Tabular Editor 3 is the prim
 - Opens `semantic-models/<model-name>/` folders natively
 - Saves changes directly back to `.tmdl` files
 - Validates model integrity (circular dependencies, broken relationships)
-- Deploys to Power BI workspaces via XMLA endpoint
+- Deploys to Power BI Desktop's local engine **or** to a Premium workspace via XMLA
 - Runs Best Practice Analyser (BPA) rules
 
-**Tabular Editor 2** (free, open-source) supports TMDL in read mode only. Authoring and deployment require **Tabular Editor 3** (commercial licence).
+**Tabular Editor 2** (free, open-source) supports TMDL in read mode only. Authoring and deployment require **Tabular Editor 3** (Community tier is free).
 
 ---
 
@@ -102,15 +115,34 @@ The Python validation script (`run-all-checks.py`) runs the text-based TMDL chec
 
 ---
 
-## Deploying via XMLA
+## Deploying — Desktop (Local, No Premium)
 
-Deploying to a Power BI workspace requires:
-1. A Power BI Premium or PPU workspace with XMLA endpoint enabled
+This is the primary workflow for Power BI Desktop users.
+
+**Prerequisites:** Power BI Desktop open with any file (even a blank report).
+
+1. Open **Power BI Desktop** → create a new blank report. Desktop silently starts a local Analysis Services engine on a dynamic port.
+2. In **Tabular Editor 3** with the model open: **File → Deploy**
+3. TE3 automatically detects running Power BI Desktop instances and lists them in the target dropdown
+4. Select the Power BI Desktop instance, enter a database name (e.g. `sales-analytics`), click **Deploy**
+5. Switch to Power BI Desktop — all 63 measures and 7 tables appear in the **Fields** pane immediately
+6. Build visuals. The model behaves identically to one deployed to a Premium workspace.
+
+> **External Tools shortcut**: If TE3 is installed before Power BI Desktop, it registers itself as an External Tool. Open a blank .pbix in Desktop, then click **External Tools → Tabular Editor 3** — TE3 opens pre-connected to the local model. Editing and saving in TE3 updates the local model in real time.
+
+**Important**: The local AS instance is in-memory only. When you close Power BI Desktop, the deployed model is gone — changes are only persisted in the `.tmdl` files on disk (which TE3 saves separately via **File → Save**).
+
+---
+
+## Deploying — Service (Requires Power BI Premium or PPU)
+
+Deploying to a shared Power BI workspace for multi-user access, scheduled refresh, and RLS enforcement requires:
+1. A Power BI Premium or PPU workspace with XMLA read/write enabled
 2. An Azure AD service principal with workspace Member or Admin access
-3. The workspace XMLA endpoint URL (format: `powerbi://api.powerbi.com/v1.0/myorg/<workspace-name>`)
+3. The workspace XMLA endpoint URL
 
 ```bash
-# Deploy to a workspace
+# Deploy to a Premium workspace via CLI
 TabularEditor3.exe semantic-models/sales-analytics/ \
   -D "powerbi://api.powerbi.com/v1.0/myorg/Dev-Workspace" \
   "sales-analytics" \
@@ -119,7 +151,7 @@ TabularEditor3.exe semantic-models/sales-analytics/ \
   -P "<client-secret>"
 ```
 
-In practice, this command is invoked by the GitHub Actions deployment workflows rather than run manually. See [DEPLOYMENT_GUIDE.md](../deployment/DEPLOYMENT_GUIDE.md) for the full deployment pipeline.
+This command is what the GitHub Actions deployment workflows execute automatically. See [DEPLOYMENT_GUIDE.md](../deployment/DEPLOYMENT_GUIDE.md) for the full pipeline setup.
 
 ---
 

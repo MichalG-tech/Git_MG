@@ -108,13 +108,20 @@ Once loaded:
 
 ---
 
-## Step 5 — Open in Power BI Desktop
+## Step 5 — Preview in Power BI Desktop (no Premium needed)
 
-Since Power BI Desktop cannot open TMDL folders directly, you must connect via XMLA (requires Power BI Premium or PPU workspace) or use Tabular Editor as the authoring tool.
+Power BI Desktop cannot open TMDL folders directly, but Tabular Editor 3 can deploy the model into Desktop's embedded local Analysis Services engine — no workspace or Premium licence required.
 
-For local preview without a workspace:
-1. In Tabular Editor 3: **Model → Deploy** to a local Analysis Services instance (if available)
-2. Or: use the **External Tools** ribbon in Power BI Desktop to connect to Tabular Editor
+1. Open **Power BI Desktop** → **New** (blank report). This starts the local AS engine in the background.
+2. In **Tabular Editor 3** (with the model already open from Step 4): **File → Deploy**
+3. TE3 detects the running Power BI Desktop instance — select it from the dropdown
+4. Set a database name (e.g. `sales-analytics`) → **Deploy**
+5. Switch to Power BI Desktop — the model's fields and measures now appear in the **Fields** pane
+6. Build visuals normally
+
+> If you see Tabular Editor 3 listed under the **External Tools** ribbon in Power BI Desktop, clicking it opens TE3 already connected to the local model — no separate deploy step needed.
+
+**Connecting to a Power BI Service workspace** (Staging, Production) requires a Power BI Premium or PPU workspace and an XMLA endpoint. This is the path demonstrated by the GitHub Actions deployment workflows. For the local PoC demonstration, the Desktop-only path above is fully sufficient.
 
 ---
 

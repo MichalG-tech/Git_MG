@@ -159,7 +159,9 @@ This PoC is a demonstration of architecture and governance — not a production 
 ## Frequently Asked Questions from Clients
 
 **"Do we need Power BI Premium?"**
-The XMLA endpoint (required for programmatic deployment) requires Premium Per User (PPU) or Premium capacity. PPU is available per user at a predictable monthly cost. For the PoC itself, TMDL authoring with Tabular Editor 3 can be done without a Premium licence.
+Not for the PoC demonstration itself. TMDL authoring, all 83 measures, validation, and local model preview all work with Power BI Desktop and Tabular Editor 3 — no Premium needed. The GitHub Actions CI validation also runs without Premium.
+
+Premium Per User (PPU) is required only for deploying to shared Power BI Service workspaces (the Dev → Test → Staging → Production pipeline). PPU is a per-user monthly licence. For a client engagement where reports need to be published and shared, PPU is the minimum. The deployment workflows in this PoC are ready to use the moment a workspace is available.
 
 **"What if our team doesn't know Git?"**
 The GitHub Actions automation handles the CI/CD complexity. Most analysts only need to know: create a branch, edit a file, open a PR. The system validates and deploys automatically. Git training is a one-day workshop.

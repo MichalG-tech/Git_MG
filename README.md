@@ -154,7 +154,7 @@ git push origin feature/add-revenue-targets-measure
 - [x] GitHub Actions — all 5 workflows with progressive approval gates
 - [x] Documentation suite — 17 reference guides across all areas
 - [x] Design system — color palette, SVG backgrounds, Power BI theme JSON
-- [ ] End-to-end deployment testing against live Power BI workspaces
+- [ ] Service deployment testing (requires Power BI Premium or PPU workspace)
 
 ---
 

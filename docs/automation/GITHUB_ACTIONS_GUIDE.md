@@ -4,6 +4,22 @@ Reference for the 5 CI/CD workflows in this repository.
 
 ---
 
+## Licence Requirements
+
+The five workflows split into two categories:
+
+| Workflow | Requires Premium? | Notes |
+|----------|------------------|-------|
+| `pr-validation.yml` | **No** | Runs Python validators and unit tests — works with any GitHub plan |
+| `deploy-dev.yml` | **Yes** | Deploys to a Power BI workspace via XMLA — requires Premium or PPU |
+| `deploy-test.yml` | **Yes** | Same |
+| `deploy-staging.yml` | **Yes** | Same |
+| `deploy-prod.yml` | **Yes** | Same |
+
+**Desktop-only users**: the PR validation workflow runs fully on every push and pull request. The deploy workflows are included to demonstrate the enterprise CI/CD architecture — they are wired and ready to execute the moment Power BI Premium workspaces are configured.
+
+---
+
 ## Pipeline Overview
 
 ```

@@ -1,5 +1,8 @@
 name: Deploy to Test
 
+# NOTE: Requires Power BI Premium or PPU workspace. Configure TEST_WORKSPACE_ID
+# and the POWERBI_* secrets before deployment steps will succeed.
+
 # Triggers on GitHub release creation (pre-release tag pattern: v*.*.*-rc*)
 # or manually via workflow_dispatch.
 #

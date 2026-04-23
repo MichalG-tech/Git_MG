@@ -64,30 +64,39 @@ All checks should pass. If you see warnings, see [COMMON_ERRORS.md](../troublesh
 
 ---
 
-## Step 5 — Open the model in Tabular Editor
+## Step 5 — Open the model in Tabular Editor 3
 
 1. Open **Tabular Editor 3**
-2. File → Open → **From folder**
-3. Select `semantic-models/sales-analytics/`
-4. Navigate to **Tables → DimDate → Properties**
-5. Set **Mark as Date Table** → Date column = `Date`
+2. **File → Open → From File** — select the `semantic-models/sales-analytics/` folder
+3. In the left panel: expand **Shared Expressions → DataFolderPath**
+4. Update the M value to your absolute `data/raw/` path:
+   ```
+   "C:/Users/yourname/GitFolder/data/raw/"
+   ```
+5. **File → Save** — writes the change back to the TMDL files
 
 ---
 
-## Step 6 — Load into Power BI Desktop
+## Step 6 — Preview in Power BI Desktop (Desktop-only, no Premium needed)
 
-1. Open **Power BI Desktop**
-2. Home → **Transform data** → **Data source settings**
-3. Update the `DataFolderPath` parameter to your `data/raw/` absolute path
-4. Click **Refresh**
+Power BI Desktop cannot open TMDL folders directly, but Tabular Editor 3 can deploy the model to Desktop's embedded Analysis Services engine:
+
+1. Open **Power BI Desktop** → create a new blank report (this starts the local AS engine)
+2. Back in **Tabular Editor 3** — with the model still open, click **File → Deploy**
+3. TE3 detects the running Power BI Desktop instance automatically — select it from the list
+4. Enter a database name (e.g. `sales-analytics`) and click **Deploy**
+5. In Power BI Desktop: the model fields now appear in the **Fields** pane
+6. Build visuals — slicers, charts, tables — using the 63 pre-built measures
+
+> Power BI Desktop also shows **Tabular Editor 3** in its **External Tools** ribbon once TE3 is installed, which opens TE3 already connected to the local model.
 
 ---
 
 ## What you now have
 
-- **Sales Analytics model**: 8 tables, 63 measures, 2 RLS roles
-- **Finance Reporting model**: 6 tables, 20 measures, 1 role
+- **Sales Analytics model**: 7 tables, 63 measures, 2 RLS roles — live in Power BI Desktop
+- **Finance Reporting model**: 6 tables, 20 measures, 1 role — ready to deploy the same way
 - **500,000+ transactions** of realistic sample data
 - **Validated** TMDL files passing all automated checks
 
-**Next step**: See [ENVIRONMENT_SETUP.md](ENVIRONMENT_SETUP.md) for full environment configuration including GitHub Actions secrets.
+**Next step**: See [ENVIRONMENT_SETUP.md](ENVIRONMENT_SETUP.md) for full configuration including GitHub Actions and (optionally) Power BI Service deployment.
